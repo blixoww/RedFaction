@@ -1,0 +1,23 @@
+power:
+  max: 10.0
+  loss_on_death: 2.0
+  regen_per_minute: 0.1
+
+pvp:
+  friendly_fire: false
+
+factions:
+  max_name_length: 16
+  min_name_length: 3
+
+zones:
+  safezone_name: "SafeZone"
+  warzone_name: "WarZone"
+
+chat:
+  faction_prefix: "§c[F] §f"
+  ally_prefix: "§a[A] §f"
+
+data:
+  autosave_interval_minutes: 5
+

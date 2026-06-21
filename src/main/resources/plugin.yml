@@ -1,0 +1,4 @@
+name: RedFaction
+version: '1.0'
+main: fr.redfaction.main.RedFaction
+api-version: '1.18'
