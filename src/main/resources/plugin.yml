@@ -1,4 +1,32 @@
 name: RedFaction
 version: '1.0'
 main: fr.redfaction.main.RedFaction
-api-version: '1.18'
+description: Competitive PvP Factions plugin for 1.8.9
+authors: [RedConflict]
+softdepend: [Vault, WorldGuard, WorldEdit, PlaceholderAPI, LuckPerms]
+
+commands:
+  f:
+    description: Main faction command
+    aliases: [faction, fac]
+    permission: redfaction.use
+    usage: /f <subcommand>
+  fc:
+    description: Send a message to faction chat
+    permission: redfaction.use
+    usage: /fc <message>
+  ac:
+    description: Send a message to ally chat
+    permission: redfaction.use
+    usage: /ac <message>
+
+permissions:
+  redfaction.use:
+    description: Basic access to RedFaction commands
+    default: true
+  redfaction.admin:
+    description: Access to admin commands (reload, safezone, warzone)
+    default: op
+  redfaction.bypass:
+    description: Bypass all claim protections
+    default: op

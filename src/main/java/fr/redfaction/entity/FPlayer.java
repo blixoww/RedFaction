@@ -19,6 +19,10 @@ public class FPlayer {
     private String name;
     private UUID factionId;
     private double power;
+    private long lastSeen;
+    private long factionJoinDate;
+    private String customTitle;
+    private boolean territoryMessages = true; // per-player toggle for claim-entry messages
 
     // --- Transient fields (reset on server restart) ---
     private transient ChatMode chatMode = ChatMode.PUBLIC;
@@ -64,7 +68,7 @@ public class FPlayer {
     }
 
     public void subtractPower(double amount) {
-        this.power = Math.max(this.power - amount, 0.0);
+        this.power = this.power - amount; // may go negative (faction becomes raidable)
     }
 
     // ---- Invite helpers ----
@@ -84,17 +88,25 @@ public class FPlayer {
 
     // ---- Getters / Setters ----
 
-    public UUID getUuid()               { return uuid; }
-    public String getName()             { return name; }
-    public void setName(String name)    { this.name = name; }
-    public UUID getFactionId()          { return factionId; }
-    public void setFactionId(UUID id)   { this.factionId = id; }
-    public double getPower()            { return power; }
-    public void setPower(double power)  { this.power = power; }
-    public ChatMode getChatMode()       { return chatMode; }
-    public void setChatMode(ChatMode m) { this.chatMode = m; }
-    public boolean isAutoClaim()        { return autoClaim; }
-    public void setAutoClaim(boolean v) { this.autoClaim = v; }
-    public boolean hasFaction()         { return factionId != null; }
+    public UUID getUuid()                    { return uuid; }
+    public String getName()                  { return name; }
+    public void setName(String name)         { this.name = name; }
+    public UUID getFactionId()               { return factionId; }
+    public void setFactionId(UUID id)        { this.factionId = id; }
+    public double getPower()                 { return power; }
+    public void setPower(double power)       { this.power = power; }
+    public long getLastSeen()                { return lastSeen; }
+    public void setLastSeen(long t)          { this.lastSeen = t; }
+    public long getFactionJoinDate()         { return factionJoinDate; }
+    public void setFactionJoinDate(long t)   { this.factionJoinDate = t; }
+    public String getCustomTitle()           { return customTitle; }
+    public void setCustomTitle(String t)     { this.customTitle = t; }
+    public boolean isTerritoryMessages()     { return territoryMessages; }
+    public void setTerritoryMessages(boolean v) { this.territoryMessages = v; }
+    public ChatMode getChatMode()            { return chatMode; }
+    public void setChatMode(ChatMode m)      { this.chatMode = m; }
+    public boolean isAutoClaim()             { return autoClaim; }
+    public void setAutoClaim(boolean v)      { this.autoClaim = v; }
+    public boolean hasFaction()              { return factionId != null; }
 }
 

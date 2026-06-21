@@ -1,10 +1,13 @@
 package fr.redfaction.commands.sub;
 
 import fr.redfaction.commands.SubCommand;
+import fr.redfaction.entity.FPlayer;
 import fr.redfaction.entity.Faction;
+import fr.redfaction.entity.Relation;
 import fr.redfaction.main.RedFaction;
 import fr.redfaction.utils.MessageUtil;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -19,6 +22,12 @@ public class ListCommand implements SubCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
+        Faction viewer = null;
+        if (sender instanceof Player) {
+            FPlayer fp = plugin.getFPlayerManager().getFPlayer(((Player) sender).getUniqueId());
+            if (fp != null && fp.hasFaction()) viewer = fp.getFaction();
+        }
+
         List<Faction> factions = new ArrayList<>(plugin.getFactionManager().getNormalFactions());
         factions.sort(Comparator.comparingDouble(Faction::getPower).reversed());
 
@@ -29,8 +38,8 @@ public class ListCommand implements SubCommand {
         }
         for (Faction f : factions) {
             String raidable = f.isRaidable() ? " §c[RAID]" : "";
-            sender.sendMessage("§e" + f.getName()
-                    + " §7(§a" + f.getOnlineCount() + "§7/§f" + f.getMembers().size() + "§7)"
+            sender.sendMessage(Relation.coloredName(viewer, f)
+                    + " §8(§a" + f.getOnlineCount() + "§7/§f" + f.getMembers().size() + "§8)"
                     + " §7Power: §e" + String.format("%.1f", f.getPower())
                     + " §7Claims: §e" + f.getClaimCount()
                     + raidable);

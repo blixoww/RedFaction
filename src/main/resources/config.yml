@@ -9,15 +9,130 @@ pvp:
 factions:
   max_name_length: 16
   min_name_length: 3
+  # Maximum members per faction (-1 = illimité)
+  max_members: 10
+  # A member who hasn't logged in for this many days is auto-kicked
+  # (message sent to the faction only). 0 = disabled.
+  auto_kick_days: 10
+  # A faction with NO member logged in for this many days is disbanded
+  # (global broadcast). 0 = disabled.
+  auto_disband_days: 7
+  # Leader offline this many days -> leadership auto-transferred to the oldest officer.
+  auto_promote_days: 14
+  max_warps: 3
+
+relations:
+  # Maximum number of each relation per faction (-1 = illimité)
+  max_allies: 1
+  max_truces: 1
+  max_enemies: -1
+
+ranks:
+  leader:
+    name: "§6Chef"
+    enabled: true
+  officer:
+    name: "§eOfficier"
+    enabled: true
+  member:
+    name: "§7Membre"
+    enabled: true
+  recruit:
+    name: "§8Recrue"
+    enabled: true
+
+rank_permissions:
+  leader:
+    can_claim: true
+    can_invite: true
+    can_kick: true
+    can_ban: true
+    can_set_spawn: true
+    can_set_warp: true
+    can_announce: true
+  officer:
+    can_claim: true
+    can_invite: true
+    can_kick: true
+    can_ban: false
+    can_set_spawn: false
+    can_set_warp: false
+    can_announce: true
+  member:
+    can_claim: false
+    can_invite: false
+    can_kick: false
+    can_ban: false
+    can_set_spawn: false
+    can_set_warp: false
+    can_announce: false
+  recruit:
+    can_claim: false
+    can_invite: false
+    can_kick: false
+    can_ban: false
+    can_set_spawn: false
+    can_set_warp: false
+    can_announce: false
 
 zones:
   safezone_name: "SafeZone"
   warzone_name: "WarZone"
 
+chest:
+  default_slots: 27
+
 chat:
   faction_prefix: "§c[F] §f"
   ally_prefix: "§a[A] §f"
+  truce_prefix: "§b[T] §f"
+  announce_prefix: "§c§l[ANNONCE] §r§f"
+  announce_cooldown_seconds: 60
+  global_format_enabled: true
+  # Placeholders:
+  #   {faction}      = faction tag coloured by the VIEWER's relation + trailing space (empty if none)
+  #   {faction_tag}  = faction tag coloured by relation (no trailing space)
+  #   {faction_name} = full faction name coloured by relation
+  #   {rank} {player} {message}
+  # Also supports PlaceholderAPI placeholders if installed, e.g. %luckperms_prefix%
+  # The faction tag is rendered without brackets and coloured per viewer
+  # (green=own, pink=ally/truce, red=enemy, white=neutral).
+  global_format: "{faction}%luckperms_prefix%{player}&7: &f{message}"
+
+near:
+  radius: 200
+
+territory:
+  # Global switch for the "Entrée dans : ..." message when crossing claim borders.
+  # Players can also toggle it individually with /f territory.
+  entry_message: true
+
+home:
+  combat_tag_seconds: 10
 
 data:
   autosave_interval_minutes: 5
 
+compat:
+  # Expose %redfaction_*% placeholders to other plugins (tab, chat, scoreboard...).
+  # Only active if PlaceholderAPI is installed.
+  placeholderapi: true
+  # Colour player nametags (above head + tab) by faction relation.
+  # Takes over per-player scoreboards — leave false if you use a tab/scoreboard plugin.
+  nametags: false
+
+interaction:
+  block_entities: true
+  blacklist:
+    - CHEST
+    - TRAPPED_CHEST
+    - TRAP_DOOR
+    - FENCE_GATE
+    - WOOD_DOOR
+    - IRON_DOOR_BLOCK
+    - WOODEN_BUTTON
+    - STONE_BUTTON
+    - LEVER
+    - STONE_PLATE
+    - WOOD_PLATE
+  whitelist: []

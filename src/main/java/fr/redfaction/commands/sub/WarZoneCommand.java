@@ -35,11 +35,11 @@ public class WarZoneCommand implements SubCommand {
             plugin.getDataManager().saveFaction(warZone);
             MessageUtil.sendSuccess(sender, "Chunk retiré de la §4WarZone§a.");
         } else {
-            if (existing != null) {
-                plugin.getClaimManager().removeAllClaims(existing.getId());
-            }
             plugin.getClaimManager().forceSet(chunk, warZone);
             plugin.getDataManager().saveFaction(warZone);
+            if (existing != null && existing.isNormal()) {
+                plugin.getDataManager().saveFaction(existing);
+            }
             MessageUtil.sendSuccess(sender, "Chunk défini comme §4WarZone§a.");
         }
     }
@@ -48,4 +48,5 @@ public class WarZoneCommand implements SubCommand {
     @Override public String getUsage()        { return "/f warzone"; }
     @Override public String getDescription()  { return "[ADMIN] Définit/retire le chunk actuel de WarZone."; }
 }
+
 

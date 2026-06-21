@@ -23,8 +23,8 @@ public class AutoclaimCommand implements SubCommand {
         FPlayer fp = plugin.getFPlayerManager().getFPlayer(player.getUniqueId());
 
         if (fp == null || !fp.hasFaction()) { MessageUtil.sendError(sender, "Vous n'avez pas de faction."); return; }
-        if (!fp.getRole().isAtLeast(Role.OFFICER)) {
-            MessageUtil.sendError(sender, "Officier ou Chef requis.");
+        if (!fr.redfaction.utils.PermissionUtil.canManage(fp, fr.redfaction.entity.FactionPermission.CLAIM)) {
+            MessageUtil.sendError(sender, "Vous n'avez pas la permission de claim (§e/f perm§c).");
             return;
         }
 

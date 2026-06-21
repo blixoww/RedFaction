@@ -33,11 +33,17 @@ public class ClaimManager {
 
     /**
      * Forcefully sets a claim, overwriting any existing owner.
+     * Removes the chunk from the previous owner's claim set.
      * Used for SafeZone/WarZone assignment.
      */
     public void forceSet(FLocation loc, Faction faction) {
-        UUID previous = claims.put(loc, faction.getId());
-        // Remove from the previous owning faction's claim set if needed
+        UUID previousId = claims.put(loc, faction.getId());
+        // Remove from previous owner's claim set
+        if (previousId != null && !previousId.equals(faction.getId())) {
+            Faction prev = fr.redfaction.main.RedFaction.getInstance()
+                    .getFactionManager().getFactionById(previousId);
+            if (prev != null) prev.getClaimsInternal().remove(loc);
+        }
         faction.addClaim(loc);
     }
 
@@ -91,4 +97,5 @@ public class ClaimManager {
         autoClaimers.clear();
     }
 }
+
 

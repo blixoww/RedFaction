@@ -10,7 +10,7 @@ import fr.redfaction.utils.MessageUtil;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-/** /f unclaim — Unclaims the current chunk (officer or leader). */
+/** /f unclaim [all] — Unclaims the current chunk, or all chunks (leader only). */
 public class UnclaimCommand implements SubCommand {
 
     private final RedFaction plugin;
@@ -24,8 +24,29 @@ public class UnclaimCommand implements SubCommand {
         FPlayer fp = plugin.getFPlayerManager().getFPlayer(player.getUniqueId());
 
         if (fp == null || !fp.hasFaction()) { MessageUtil.sendError(sender, "Vous n'avez pas de faction."); return; }
-        if (!fp.getRole().isAtLeast(Role.OFFICER)) {
-            MessageUtil.sendError(sender, "Officier ou Chef requis.");
+
+        if (args.length > 0 && args[0].equalsIgnoreCase("all")) {
+            // Unclaim all — leader only
+            if (fp.getRole() != Role.LEADER) {
+                MessageUtil.sendError(sender, "Seul le §6Chef §cpeut libérer tous les claims.");
+                return;
+            }
+            Faction faction = fp.getFaction();
+            int count = faction.getClaimCount();
+            if (count == 0) {
+                MessageUtil.sendError(sender, "Votre faction n'a aucun claim.");
+                return;
+            }
+            plugin.getClaimManager().removeAllClaims(faction.getId());
+            faction.clearClaims();
+            plugin.getDataManager().saveFaction(faction);
+            MessageUtil.sendSuccess(sender, "§e" + count + " §achunk(s) libéré(s).");
+            return;
+        }
+
+        // Single chunk unclaim
+        if (!fr.redfaction.utils.PermissionUtil.canManage(fp, fr.redfaction.entity.FactionPermission.CLAIM)) {
+            MessageUtil.sendError(sender, "Vous n'avez pas la permission de claim (§e/f perm§c).");
             return;
         }
 
@@ -48,7 +69,6 @@ public class UnclaimCommand implements SubCommand {
     }
 
     @Override public String getPermission()   { return "redfaction.use"; }
-    @Override public String getUsage()        { return "/f unclaim"; }
-    @Override public String getDescription()  { return "Libère le claim du chunk actuel."; }
+    @Override public String getUsage()        { return "/f unclaim [all]"; }
+    @Override public String getDescription()  { return "Libère le claim du chunk actuel (ou tous avec 'all')."; }
 }
-

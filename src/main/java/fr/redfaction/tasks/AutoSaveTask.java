@@ -18,6 +18,7 @@ public class AutoSaveTask extends BukkitRunnable {
     @Override
     public void run() {
         plugin.getDataManager().saveAll();
+        plugin.getChestManager().saveAll();
         plugin.getLogger().info("[AutoSave] Données sauvegardées.");
     }
 }

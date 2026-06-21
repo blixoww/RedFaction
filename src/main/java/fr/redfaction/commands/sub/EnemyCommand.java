@@ -41,9 +41,17 @@ public class EnemyCommand implements SubCommand {
             return;
         }
 
-        // Break alliance if needed
-        if (faction.isAlly(target.getId())) faction.removeAlly();
-        if (target.isAlly(faction.getId())) target.removeAlly();
+        int maxEnemies = plugin.getConfigUtil().getMaxEnemies();
+        if (maxEnemies >= 0 && faction.getEnemies().size() >= maxEnemies) {
+            MessageUtil.sendError(sender, "Limite d'ennemis atteinte (§e" + maxEnemies + "§c).");
+            return;
+        }
+
+        // Break alliance if it exists (both sides)
+        if (faction.isAlly(target.getId())) {
+            faction.removeAlliedFaction(target.getId());
+            target.removeAlliedFaction(faction.getId());
+        }
 
         faction.addEnemy(target.getId());
         plugin.getDataManager().saveFaction(faction);
@@ -56,4 +64,3 @@ public class EnemyCommand implements SubCommand {
     @Override public String getUsage()        { return "/f enemy <faction>"; }
     @Override public String getDescription()  { return "Déclare une faction comme ennemie."; }
 }
-

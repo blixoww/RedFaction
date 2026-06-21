@@ -32,13 +32,25 @@ public class JoinCommand implements SubCommand {
             MessageUtil.sendError(sender, "Faction §e" + args[0] + " §cintrouvable.");
             return;
         }
-        if (!fp.hasPendingInvite(faction.getId())) {
-            MessageUtil.sendError(sender, "Vous n'avez pas d'invitation pour §e" + faction.getName() + "§c.");
+        if (faction.isBanned(player.getUniqueId())) {
+            MessageUtil.sendError(sender, "Vous êtes banni de §e" + faction.getName() + "§c.");
+            return;
+        }
+        if (!faction.isOpen() && !fp.hasPendingInvite(faction.getId())) {
+            MessageUtil.sendError(sender, "§e" + faction.getName() + " §cest sur invitation uniquement.");
+            return;
+        }
+        int maxMembers = plugin.getConfigUtil().getMaxMembers();
+        if (maxMembers >= 0 && faction.getMembers().size() >= maxMembers) {
+            MessageUtil.sendError(sender, "§e" + faction.getName() + " §cest pleine (§e" + maxMembers + "§c membres max).");
             return;
         }
 
+        // Determine starting rank: use RECRUIT if enabled, otherwise MEMBER
+        Role startRole = (plugin.getConfigUtil().isRankEnabled(Role.RECRUIT)) ? Role.RECRUIT : Role.MEMBER;
         fp.setFactionId(faction.getId());
-        faction.addMember(player.getUniqueId(), Role.MEMBER);
+        fp.setFactionJoinDate(System.currentTimeMillis());
+        faction.addMember(player.getUniqueId(), startRole);
         fp.removePendingInvite(faction.getId());
 
         plugin.getDataManager().saveFaction(faction);

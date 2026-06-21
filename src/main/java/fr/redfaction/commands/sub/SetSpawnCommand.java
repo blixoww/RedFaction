@@ -1,6 +1,7 @@
 package fr.redfaction.commands.sub;
 
 import fr.redfaction.commands.SubCommand;
+import fr.redfaction.entity.FLocation;
 import fr.redfaction.entity.FPlayer;
 import fr.redfaction.entity.Faction;
 import fr.redfaction.entity.Role;
@@ -23,12 +24,21 @@ public class SetSpawnCommand implements SubCommand {
         FPlayer fp = plugin.getFPlayerManager().getFPlayer(player.getUniqueId());
 
         if (fp == null || !fp.hasFaction()) { MessageUtil.sendError(sender, "Vous n'avez pas de faction."); return; }
-        if (!fp.getRole().isAtLeast(Role.OFFICER)) {
-            MessageUtil.sendError(sender, "Officier ou Chef requis.");
+        if (!fr.redfaction.utils.PermissionUtil.canManage(fp, fr.redfaction.entity.FactionPermission.SETHOME)) {
+            MessageUtil.sendError(sender, "Vous n'avez pas la permission (§e/f perm§c).");
             return;
         }
 
         Faction faction = fp.getFaction();
+
+        // The spawn can only be set inside your own faction's territory.
+        FLocation chunk = FLocation.fromLocation(player.getLocation());
+        Faction here = plugin.getClaimManager().getFactionAt(chunk);
+        if (here == null || !here.getId().equals(faction.getId())) {
+            MessageUtil.sendError(sender, "Vous devez être dans le territoire de votre faction pour définir le spawn.");
+            return;
+        }
+
         faction.setSpawn(player.getLocation());
         plugin.getDataManager().saveFaction(faction);
 

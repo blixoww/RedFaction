@@ -6,6 +6,7 @@ package fr.redfaction.entity;
 public enum ChatMode {
     PUBLIC,
     FACTION,
-    ALLY
+    ALLY,
+    TRUCE
 }
 

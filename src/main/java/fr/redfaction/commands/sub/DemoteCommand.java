@@ -6,10 +6,11 @@ import fr.redfaction.entity.Faction;
 import fr.redfaction.entity.Role;
 import fr.redfaction.main.RedFaction;
 import fr.redfaction.utils.MessageUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-/** /f demote <player> — Demotes an Officer to Member. Leader only. */
+/** /f demote <joueur> — Demotes a member one rank down. Leader only. */
 public class DemoteCommand implements SubCommand {
 
     private final RedFaction plugin;
@@ -31,28 +32,40 @@ public class DemoteCommand implements SubCommand {
             MessageUtil.sendError(sender, "Joueur §e" + args[0] + " §cintrouvable dans votre faction.");
             return;
         }
-        if (target.getRole() == Role.MEMBER) {
-            MessageUtil.sendError(sender, "§e" + target.getName() + " §cest déjà §7Membre§c.");
-            return;
-        }
         if (target.getRole() == Role.LEADER) {
             MessageUtil.sendError(sender, "Impossible de rétrograder le Chef.");
             return;
         }
 
+        Role newRole = prevRank(target.getRole());
+        if (newRole == null) {
+            MessageUtil.sendError(sender, "§e" + target.getName() + " §cest déjà au rang le plus bas.");
+            return;
+        }
+
         Faction faction = fp.getFaction();
-        faction.setRole(target.getUuid(), Role.MEMBER);
+        faction.setRole(target.getUuid(), newRole);
         plugin.getDataManager().saveFaction(faction);
 
-        MessageUtil.sendSuccess(sender, "§e" + target.getName() + " §arétrogradé §7Membre§a.");
-        Player targetPlayer = org.bukkit.Bukkit.getPlayer(target.getUuid());
+        String roleName = newRole.getDisplayName();
+        MessageUtil.sendSuccess(sender, "§e" + target.getName() + " §arétrogradé §r" + roleName + "§a.");
+        Player targetPlayer = Bukkit.getPlayer(target.getUuid());
         if (targetPlayer != null) {
-            MessageUtil.send(targetPlayer, "§cVous avez été rétrogradé §7Membre §cdans §e" + faction.getName() + "§c.");
+            MessageUtil.send(targetPlayer, "§cVous avez été rétrogradé §r" + roleName + " §cdans §e" + faction.getName() + "§c.");
         }
+    }
+
+    /** Returns the next rank below the given role, skipping disabled ranks. Returns null if already at bottom. */
+    private Role prevRank(Role current) {
+        Role[] values = Role.values();
+        for (int i = current.ordinal() - 1; i >= 0; i--) {
+            Role candidate = values[i];
+            if (plugin.getConfigUtil().isRankEnabled(candidate)) return candidate;
+        }
+        return null;
     }
 
     @Override public String getPermission()   { return "redfaction.use"; }
     @Override public String getUsage()        { return "/f demote <joueur>"; }
-    @Override public String getDescription()  { return "Rétrograde un Officier en Membre."; }
+    @Override public String getDescription()  { return "Rétrograde un membre d'un rang."; }
 }
-

@@ -34,10 +34,29 @@ public class NeutralCommand implements SubCommand {
         }
 
         boolean changed = false;
-        if (faction.isAlly(target.getId())) { faction.removeAlly(); changed = true; }
-        if (faction.isEnemy(target.getId())) { faction.removeEnemy(target.getId()); changed = true; }
-        // Remove the other side's ally relation if pointing to us
-        if (target.isAlly(faction.getId())) { target.removeAlly(); plugin.getDataManager().saveFaction(target); }
+        if (faction.isAlly(target.getId())) {
+            faction.removeAlliedFaction(target.getId());
+            target.removeAlliedFaction(faction.getId());
+            plugin.getDataManager().saveFaction(target);
+            changed = true;
+        }
+        if (faction.isTruce(target.getId())) {
+            faction.removeTruce(target.getId());
+            target.removeTruce(faction.getId());
+            plugin.getDataManager().saveFaction(target);
+            changed = true;
+        }
+        if (faction.isEnemy(target.getId())) {
+            faction.removeEnemy(target.getId());
+            target.removeEnemy(faction.getId());
+            plugin.getDataManager().saveFaction(target);
+            changed = true;
+        }
+        // Also clear any pending requests between the two
+        faction.removeAllyRequest(target.getId());
+        target.removeAllyRequest(faction.getId());
+        faction.removeTruceRequest(target.getId());
+        target.removeTruceRequest(faction.getId());
 
         if (!changed) {
             MessageUtil.send(sender, "Votre relation avec §e" + target.getName() + " §fest déjà neutre.");
@@ -52,4 +71,3 @@ public class NeutralCommand implements SubCommand {
     @Override public String getUsage()        { return "/f neutral <faction>"; }
     @Override public String getDescription()  { return "Passe la relation avec une faction en neutre."; }
 }
-

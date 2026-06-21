@@ -1,7 +1,10 @@
 package fr.redfaction.managers;
 
+import fr.redfaction.entity.FPlayer;
 import fr.redfaction.entity.Faction;
 import fr.redfaction.main.RedFaction;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 import java.util.*;
 
@@ -88,6 +91,42 @@ public class FactionManager {
 
     public Faction getSafeZone() { return factionsById.get(Faction.SAFEZONE_ID); }
     public Faction getWarZone()  { return factionsById.get(Faction.WARZONE_ID); }
+
+    /**
+     * Fully disbands a faction: removes all members, claims, ally/enemy relations,
+     * deletes the save file, and broadcasts to remaining online members.
+     */
+    public void disbandFaction(Faction faction, RedFaction plugin) {
+        // Remove all members' faction reference
+        for (UUID uuid : faction.getMembersInternal().keySet()) {
+            FPlayer fp = plugin.getFPlayerManager().getFPlayer(uuid);
+            if (fp != null) {
+                fp.setFactionId(null);
+                fp.setFactionJoinDate(0L);
+            }
+            Player online = Bukkit.getPlayer(uuid);
+            if (online != null) {
+                online.sendMessage(fr.redfaction.utils.MessageUtil.getPrefix()
+                        + "§cVotre faction §e" + faction.getName() + " §ca été dissoute.");
+            }
+        }
+        // Remove ally/enemy relations from other factions
+        UUID disbandedId = faction.getId();
+        for (Faction other : getAllFactions()) {
+            boolean changed = false;
+            if (other.isAlly(disbandedId))  { other.removeAlliedFaction(disbandedId); changed = true; }
+            if (other.isTruce(disbandedId)) { other.removeTruce(disbandedId);          changed = true; }
+            if (other.isEnemy(disbandedId)) { other.removeEnemy(disbandedId);          changed = true; }
+            if (other.getFactionPermsInternal().remove(disbandedId) != null) changed = true;
+            if (other.getPendingAllyRequestsInternal().remove(disbandedId)) changed = true;
+            if (changed) plugin.getDataManager().saveFaction(other);
+        }
+        plugin.getClaimManager().removeAllClaims(disbandedId);
+        plugin.getChestManager().remove(disbandedId);
+        removeFaction(faction);
+        plugin.getDataManager().deleteFactionFile(disbandedId);
+        plugin.getDataManager().savePlayers();
+    }
 
     /** Clears all data — used on reload. */
     public void clear() {

@@ -6,10 +6,11 @@ import fr.redfaction.entity.Faction;
 import fr.redfaction.entity.Role;
 import fr.redfaction.main.RedFaction;
 import fr.redfaction.utils.MessageUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-/** /f promote <player> — Promotes a member to Officer, or Officer to Leader. Leader only. */
+/** /f promote <joueur> — Promotes a member one rank up. Leader only. */
 public class PromoteCommand implements SubCommand {
 
     private final RedFaction plugin;
@@ -32,31 +33,39 @@ public class PromoteCommand implements SubCommand {
             return;
         }
         if (target.getRole() == Role.LEADER) {
-            MessageUtil.sendError(sender, "Ce joueur est déjà §6Chef§c.");
+            MessageUtil.sendError(sender, "Utilisez §e/f transfer §cpour changer de chef.");
+            return;
+        }
+
+        Role newRole = nextRank(target.getRole());
+        if (newRole == null || newRole == Role.LEADER) {
+            MessageUtil.sendError(sender, "Utilisez §e/f transfer §cpour transférer le chef.");
             return;
         }
 
         Faction faction = fp.getFaction();
-        Role newRole = (target.getRole() == Role.MEMBER) ? Role.OFFICER : Role.LEADER;
-
-        if (newRole == Role.LEADER) {
-            // Use /f transfer instead for clarity
-            MessageUtil.sendError(sender, "Pour transférer le chef, utilisez §e/f transfer§c.");
-            return;
-        }
-
         faction.setRole(target.getUuid(), newRole);
         plugin.getDataManager().saveFaction(faction);
 
-        MessageUtil.sendSuccess(sender, "§e" + target.getName() + " §apromis §eOfficier§a.");
-        Player targetPlayer = org.bukkit.Bukkit.getPlayer(target.getUuid());
+        String roleName = newRole.getDisplayName();
+        MessageUtil.sendSuccess(sender, "§e" + target.getName() + " §apromis §r" + roleName + "§a.");
+        Player targetPlayer = Bukkit.getPlayer(target.getUuid());
         if (targetPlayer != null) {
-            MessageUtil.send(targetPlayer, "Vous avez été promu §eOfficier §fdans §e" + faction.getName() + "§f.");
+            MessageUtil.send(targetPlayer, "Vous avez été promu §r" + roleName + " §fdans §e" + faction.getName() + "§f.");
         }
+    }
+
+    /** Returns the next rank above the given role, skipping disabled ranks. Returns null if already max. */
+    private Role nextRank(Role current) {
+        Role[] values = Role.values();
+        for (int i = current.ordinal() + 1; i < values.length - 1; i++) { // exclude LEADER
+            Role candidate = values[i];
+            if (plugin.getConfigUtil().isRankEnabled(candidate)) return candidate;
+        }
+        return null;
     }
 
     @Override public String getPermission()   { return "redfaction.use"; }
     @Override public String getUsage()        { return "/f promote <joueur>"; }
-    @Override public String getDescription()  { return "Promeut un membre en Officier."; }
+    @Override public String getDescription()  { return "Promeut un membre d'un rang."; }
 }
-

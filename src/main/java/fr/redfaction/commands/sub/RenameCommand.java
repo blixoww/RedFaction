@@ -54,7 +54,7 @@ public class RenameCommand implements SubCommand {
         plugin.getFactionManager().addFaction(faction); // Re-register with new name
         plugin.getDataManager().saveFaction(faction);
 
-        MessageUtil.sendSuccess(sender, "Faction renommée : §e" + oldName + " §a→ §e" + newName);
+        MessageUtil.sendSuccess(sender, "Faction renommée : §e" + oldName + " §a-> §e" + newName);
     }
 
     @Override public String getPermission()   { return "redfaction.use"; }

@@ -47,9 +47,10 @@ public class AdminCommand implements SubCommand {
             return;
         }
 
-        faction.setRole(targetFp.getUuid(), Role.LEADER);
-        // Demote old leader if any
+        // Capture the current leader BEFORE promoting the target, otherwise
+        // getLeader() may return the freshly-promoted target (two leaders).
         java.util.UUID oldLeader = faction.getLeader();
+        faction.setRole(targetFp.getUuid(), Role.LEADER);
         if (oldLeader != null && !oldLeader.equals(targetFp.getUuid())) {
             faction.setRole(oldLeader, Role.OFFICER);
         }

@@ -10,12 +10,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-/**
- * Handles player join/quit events:
- * - Creates or updates the FPlayer record on join
- * - Displays the faction MOTD on join
- * - Saves player data on quit
- */
 public class PlayerJoinListener implements Listener {
 
     private final RedFaction plugin;
@@ -29,8 +23,34 @@ public class PlayerJoinListener implements Listener {
         Player player = event.getPlayer();
         FPlayer fp = plugin.getFPlayerManager().getOrCreate(player.getUniqueId(), player.getName());
 
-        // Display faction MOTD if the player is in a faction
+        // If this player rejoins, the faction is no longer fully offline
+        Faction faction = fp.getFaction();
+        if (faction != null && faction.getLastAllOfflineEpoch() != 0L) {
+            faction.setLastAllOfflineEpoch(0L);
+        }
+
         displayMotd(player, fp);
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        if (plugin.getConfigUtil().isNametagsEnabled()) {
+            plugin.getNametagManager().remove(event.getPlayer());
+        }
+        FPlayer fp = plugin.getFPlayerManager().getFPlayer(event.getPlayer().getUniqueId());
+        if (fp != null) {
+            fp.setLastSeen(System.currentTimeMillis());
+
+            // If all faction members are now offline, mark the time
+            Faction faction = fp.getFaction();
+            if (faction != null && faction.isNormal() && faction.getOnlineCount() <= 1) {
+                // <=1 because this player hasn't fully disconnected yet during the event
+                if (faction.getLastAllOfflineEpoch() == 0L) {
+                    faction.setLastAllOfflineEpoch(System.currentTimeMillis());
+                }
+            }
+        }
+        plugin.getDataManager().savePlayers();
     }
 
     private void displayMotd(Player player, FPlayer fp) {
@@ -41,11 +61,4 @@ public class PlayerJoinListener implements Listener {
         player.sendMessage(MessageUtil.getPrefix()
                 + "§e[MOTD §6" + faction.getName() + "§e] §f" + motd);
     }
-
-    @EventHandler
-    public void onQuit(PlayerQuitEvent event) {
-        // Persist player data on logout
-        plugin.getDataManager().savePlayers();
-    }
 }
-

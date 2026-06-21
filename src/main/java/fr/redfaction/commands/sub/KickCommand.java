@@ -24,8 +24,8 @@ public class KickCommand implements SubCommand {
         FPlayer fp = plugin.getFPlayerManager().getFPlayer(player.getUniqueId());
 
         if (fp == null || !fp.hasFaction()) { MessageUtil.sendError(sender, "Vous n'avez pas de faction."); return; }
-        if (!fp.getRole().isAtLeast(Role.OFFICER)) {
-            MessageUtil.sendError(sender, "Vous devez être §eOfficier §cou §6Chef§c.");
+        if (!fr.redfaction.utils.PermissionUtil.canManage(fp, fr.redfaction.entity.FactionPermission.KICK)) {
+            MessageUtil.sendError(sender, "Vous n'avez pas la permission d'expulser (§e/f perm§c).");
             return;
         }
         if (args.length == 0) { MessageUtil.sendError(sender, getUsage()); return; }

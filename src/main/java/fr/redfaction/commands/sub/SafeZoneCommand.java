@@ -35,12 +35,12 @@ public class SafeZoneCommand implements SubCommand {
             plugin.getDataManager().saveFaction(safeZone);
             MessageUtil.sendSuccess(sender, "Chunk retiré de la §dSafeZone§a.");
         } else {
-            // Remove any existing claim first
-            if (existing != null) {
-                plugin.getClaimManager().removeAllClaims(existing.getId());
-            }
+            // forceSet handles transfer from any previous owner
             plugin.getClaimManager().forceSet(chunk, safeZone);
             plugin.getDataManager().saveFaction(safeZone);
+            if (existing != null && existing.isNormal()) {
+                plugin.getDataManager().saveFaction(existing);
+            }
             MessageUtil.sendSuccess(sender, "Chunk défini comme §dSafeZone§a.");
         }
     }
@@ -49,4 +49,5 @@ public class SafeZoneCommand implements SubCommand {
     @Override public String getUsage()        { return "/f safezone"; }
     @Override public String getDescription()  { return "[ADMIN] Définit/retire le chunk actuel de SafeZone."; }
 }
+
 

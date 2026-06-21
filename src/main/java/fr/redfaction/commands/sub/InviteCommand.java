@@ -24,8 +24,8 @@ public class InviteCommand implements SubCommand {
         FPlayer fp = plugin.getFPlayerManager().getFPlayer(player.getUniqueId());
 
         if (fp == null || !fp.hasFaction()) { MessageUtil.sendError(sender, "Vous n'avez pas de faction."); return; }
-        if (!fp.getRole().isAtLeast(Role.OFFICER)) {
-            MessageUtil.sendError(sender, "Vous devez être §eOfficier §cou §6Chef§c.");
+        if (!fr.redfaction.utils.PermissionUtil.canManage(fp, fr.redfaction.entity.FactionPermission.INVITE)) {
+            MessageUtil.sendError(sender, "Vous n'avez pas la permission d'inviter (§e/f perm§c).");
             return;
         }
         if (args.length == 0) { MessageUtil.sendError(sender, getUsage()); return; }
@@ -40,6 +40,15 @@ public class InviteCommand implements SubCommand {
         }
 
         Faction faction = fp.getFaction();
+        if (faction.isBanned(target.getUniqueId())) {
+            MessageUtil.sendError(sender, "§e" + target.getName() + " §cest banni de votre faction.");
+            return;
+        }
+        int maxMembers = plugin.getConfigUtil().getMaxMembers();
+        if (maxMembers >= 0 && faction.getMembers().size() >= maxMembers) {
+            MessageUtil.sendError(sender, "Votre faction est pleine (§e" + maxMembers + "§c membres max).");
+            return;
+        }
         if (targetFp.hasPendingInvite(faction.getId())) {
             MessageUtil.sendError(sender, "§e" + target.getName() + " §ca déjà une invitation en attente.");
             return;

@@ -12,7 +12,10 @@ import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
-/** /f ally <faction> — Sets an alliance with a faction (1 max). Leader only. */
+/**
+ * /f ally <faction> — Sends or accepts an alliance request (mutual, configurable max).
+ * First use sends a request; second use (by the other leader) accepts it.
+ */
 public class AllyCommand implements SubCommand {
 
     private final RedFaction plugin;
@@ -43,20 +46,40 @@ public class AllyCommand implements SubCommand {
             MessageUtil.sendError(sender, "Vous êtes déjà alliés avec §e" + target.getName() + "§c.");
             return;
         }
-        if (faction.getAlly() != null) {
-            MessageUtil.sendError(sender, "Vous avez déjà un allié. Utilisez /f neutral <faction> pour le rompre.");
+
+        int maxAllies = plugin.getConfigUtil().getMaxAllies();
+        if (maxAllies >= 0 && faction.getAllies().size() >= maxAllies) {
+            MessageUtil.sendError(sender, "Vous avez atteint la limite d'alliés (§e" + maxAllies + "§c).");
+            return;
+        }
+        if (maxAllies >= 0 && target.getAllies().size() >= maxAllies) {
+            MessageUtil.sendError(sender, "§e" + target.getName() + " §ca déjà atteint sa limite d'alliés.");
             return;
         }
 
-        // Remove enemy status if applicable
-        faction.removeEnemy(target.getId());
-        target.removeEnemy(faction.getId());
+        // If the target already sent us a request, accept it
+        if (faction.hasAllyRequest(target.getId())) {
+            faction.removeAllyRequest(target.getId());
+            faction.removeEnemy(target.getId());
+            target.removeEnemy(faction.getId());
+            faction.addAlliedFaction(target.getId());
+            target.addAlliedFaction(faction.getId());
+            plugin.getDataManager().saveFaction(faction);
+            plugin.getDataManager().saveFaction(target);
+            MessageUtil.sendSuccess(sender, "Alliance acceptée avec §e" + target.getName() + "§a !");
+            broadcastToFaction(target, "§e" + faction.getName() + " §fa accepté votre demande d'alliance !");
+            return;
+        }
 
-        faction.setAlly(target.getId());
-        plugin.getDataManager().saveFaction(faction);
-
-        MessageUtil.sendSuccess(sender, "§e" + faction.getName() + " §aest maintenant allié de §e" + target.getName() + "§a.");
-        broadcastToFaction(target, "§e" + faction.getName() + " §fdéclare une alliance avec vous !");
+        // Send a request to the target
+        if (target.hasAllyRequest(faction.getId())) {
+            MessageUtil.send(sender, "Vous avez déjà envoyé une demande d'alliance à §e" + target.getName() + "§f.");
+            return;
+        }
+        target.addAllyRequest(faction.getId());
+        plugin.getDataManager().saveFaction(target);
+        MessageUtil.sendSuccess(sender, "Demande d'alliance envoyée à §e" + target.getName() + "§a.");
+        broadcastToFaction(target, "§e" + faction.getName() + " §fvous propose une alliance ! (§e/f ally " + faction.getName() + "§f pour accepter)");
     }
 
     private void broadcastToFaction(Faction faction, String message) {
@@ -68,6 +91,5 @@ public class AllyCommand implements SubCommand {
 
     @Override public String getPermission()   { return "redfaction.use"; }
     @Override public String getUsage()        { return "/f ally <faction>"; }
-    @Override public String getDescription()  { return "S'allie avec une faction (1 max)."; }
+    @Override public String getDescription()  { return "Propose ou accepte une alliance."; }
 }
-

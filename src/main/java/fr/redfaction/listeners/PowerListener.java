@@ -1,16 +1,18 @@
 package fr.redfaction.listeners;
 
 import fr.redfaction.entity.FPlayer;
+import fr.redfaction.entity.Faction;
 import fr.redfaction.main.RedFaction;
 import fr.redfaction.utils.MessageUtil;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
-/**
- * Handles power loss on player death.
- */
+import java.util.UUID;
+
 public class PowerListener implements Listener {
 
     private final RedFaction plugin;
@@ -24,21 +26,48 @@ public class PowerListener implements Listener {
         FPlayer fp = plugin.getFPlayerManager().getFPlayer(event.getEntity().getUniqueId());
         if (fp == null) return;
 
-        double loss = plugin.getConfigUtil().getPowerLossOnDeath();
-        double before = fp.getPower();
+        double loss  = plugin.getConfigUtil().getPowerLossOnDeath();
         fp.subtractPower(loss);
         double after = fp.getPower();
+        double max   = plugin.getConfigUtil().getMaxPower();
 
-        // Notify the player (they'll see this on respawn via death message / we send on respawn)
-        // Store the loss for display — we simply notify here
+        // Format: "§cVous avez perdu 2.0 power. Power actuel : 6.0/10"
         event.getEntity().sendMessage(
-                MessageUtil.getPrefix() + "§cVous avez perdu §e" + String.format("%.1f", loss)
-                        + " §cde power. (§e" + String.format("%.1f", before) + "§c → §e"
-                        + String.format("%.1f", after) + "§c)"
+                MessageUtil.getPrefix()
+                + "§cVous avez perdu §e" + String.format("%.1f", loss)
+                + " §cpower. Power actuel : §e" + String.format("%.1f", after)
+                + "§c/§e" + String.format("%.0f", max)
         );
 
-        // Save updated power
         plugin.getDataManager().savePlayers();
+
+        Faction faction = fp.getFaction();
+        if (faction != null && faction.isNormal()) {
+            double factionPower = faction.getPower();
+            int claims = faction.getClaimCount();
+
+            // Warn if faction transitions to under-powered or negative power
+            if (factionPower < 0) {
+                broadcastToFaction(faction,
+                        "§c§l[!] §e" + faction.getName()
+                        + " §ca un power §cnégatif (§e" + String.format("%.1f", factionPower)
+                        + "§c) — tous les claims sont raidables !");
+            } else if (factionPower < claims) {
+                broadcastToFaction(faction,
+                        "§c§l[!] §e" + faction.getName()
+                        + " §cest sous-power (§e" + String.format("%.1f", factionPower)
+                        + "§c/§e" + claims + "§c claims) — territoire raidable !");
+            }
+
+            // Auto-disband only on power = 0 or below AND no online members can regen
+            // (actual auto-disband by inactivity is handled by AutoDisbandTask)
+        }
+    }
+
+    private void broadcastToFaction(Faction faction, String message) {
+        for (UUID uuid : faction.getMembers().keySet()) {
+            Player m = Bukkit.getPlayer(uuid);
+            if (m != null) m.sendMessage(MessageUtil.getPrefix() + message);
+        }
     }
 }
-
