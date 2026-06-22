@@ -172,6 +172,14 @@ public class RedFactionAPI {
         return faction != null ? faction.getPower() : 0;
     }
 
+    /**
+     * Returns the faction's foundation date as epoch millis, or 0 if unknown
+     * (legacy factions created before this was tracked, or special zones).
+     */
+    public long getFoundedDate(Faction faction) {
+        return faction != null ? faction.getFoundedDate() : 0L;
+    }
+
     // ================================================================
     //  Claim / territory queries
     // ================================================================
@@ -247,6 +255,7 @@ public class RedFactionAPI {
 
         Faction faction = new Faction(UUID.randomUUID(), name);
         faction.addMember(leader.getUniqueId(), Role.LEADER);
+        faction.setFoundedDate(System.currentTimeMillis());
 
         FactionCreateEvent event = new FactionCreateEvent(faction, leader);
         Bukkit.getPluginManager().callEvent(event);

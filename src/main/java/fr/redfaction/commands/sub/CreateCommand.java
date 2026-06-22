@@ -49,6 +49,7 @@ public class CreateCommand implements SubCommand {
 
         Faction faction = new Faction(UUID.randomUUID(), name);
         faction.addMember(player.getUniqueId(), Role.LEADER);
+        faction.setFoundedDate(System.currentTimeMillis());
 
         // Fire the create event before registering: another plugin may cancel it.
         fr.redfaction.api.events.FactionCreateEvent event =

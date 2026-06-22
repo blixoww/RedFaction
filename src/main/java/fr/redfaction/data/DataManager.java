@@ -211,6 +211,9 @@ public class DataManager {
             if (obj.has("open")) {
                 faction.setOpen(obj.get("open").getAsBoolean());
             }
+            if (obj.has("foundedDate")) {
+                faction.setFoundedDate(obj.get("foundedDate").getAsLong());
+            }
 
             return faction;
         }
@@ -397,6 +400,7 @@ public class DataManager {
         obj.addProperty("lastAllOfflineEpoch", faction.getLastAllOfflineEpoch());
         obj.addProperty("tag", faction.getRawTag());
         obj.addProperty("open", faction.isOpen());
+        obj.addProperty("foundedDate", faction.getFoundedDate());
 
         writeJson(file, obj);
     }

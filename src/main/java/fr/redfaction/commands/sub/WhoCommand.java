@@ -79,6 +79,10 @@ public class WhoCommand implements SubCommand {
         // Access mode
         sender.sendMessage("§7Accès : " + (faction.isOpen() ? "§aOuvert" : "§eSur invitation"));
 
+        // Foundation date (only for normal factions where it is known)
+        if (faction.isNormal() && faction.getFoundedDate() > 0)
+            sender.sendMessage("§7Fondée le : §f" + DATE.format(new Date(faction.getFoundedDate())));
+
         // Relations (coloured by this faction's own diplomacy)
         sendRelationLine(sender, "§dAlliés", faction.getAllies(), "§d");
         sendRelationLine(sender, "§dTrêves", faction.getTruces(), "§d");

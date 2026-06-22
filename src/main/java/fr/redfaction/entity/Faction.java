@@ -22,7 +22,7 @@ public class Faction {
     private String description;
     private String motd;
     private Map<UUID, Role> members;
-    private Set<UUID> allies; // Changed from UUID to Set<UUID>
+    private Set<UUID> allies;
     private Set<UUID> truces;
     private Set<UUID> enemies;
     private Set<FLocation> claims;
@@ -52,6 +52,9 @@ public class Faction {
 
     // Epoch millis when the last member went offline (for auto-disband)
     private long lastAllOfflineEpoch;
+
+    // Epoch millis when the faction was founded (0 if unknown / legacy faction)
+    private long foundedDate;
 
     // Short faction tag shown in chat (max 16 chars, falls back to name)
     private String tag;
@@ -294,6 +297,10 @@ public class Faction {
     public void setLastAnnouncementTime(long time)    { this.lastAnnouncementTime = time; }
     public long getLastAllOfflineEpoch()              { return lastAllOfflineEpoch; }
     public void setLastAllOfflineEpoch(long t)        { this.lastAllOfflineEpoch = t; }
+
+    /** Epoch millis when the faction was founded (0 if unknown / legacy faction). */
+    public long getFoundedDate()                      { return foundedDate; }
+    public void setFoundedDate(long t)                { this.foundedDate = t; }
 
     // Tag
     public String getTag()                            { return (tag != null && !tag.isEmpty()) ? tag : name; }
