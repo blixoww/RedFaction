@@ -95,9 +95,10 @@ chat:
   #   {faction_name} = full faction name coloured by relation
   #   {rank} {player} {message}
   # Also supports PlaceholderAPI placeholders if installed, e.g. %luckperms_prefix%
+  #   %factionevent_rank_prefix% = classement event de la faction (préfixe + espace, vide hors classement)
   # The faction tag is rendered without brackets and coloured per viewer
   # (green=own, pink=ally/truce, red=enemy, white=neutral).
-  global_format: "{faction}%luckperms_prefix%{player}&7: &f{message}"
+  global_format: "%factionevent_rank_prefix%{faction}%luckperms_prefix%{player} &8» &f{message}"
 
 near:
   radius: 200
