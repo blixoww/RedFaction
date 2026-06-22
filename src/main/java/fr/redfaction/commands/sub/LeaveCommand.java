@@ -30,12 +30,22 @@ public class LeaveCommand implements SubCommand {
                 MessageUtil.sendError(sender, "Transférez le chef à un autre membre avant de partir (/f transfer <joueur>).");
                 return;
             }
-            // Last member and leader: disband
-            plugin.getFactionManager().removeFaction(faction);
-            plugin.getDataManager().deleteFactionFile(faction.getId());
-            fp.setFactionId(null);
-            plugin.getDataManager().savePlayers();
-            MessageUtil.sendSuccess(sender, "Vous avez quitté et dissout §e" + faction.getName() + "§a (faction vide).");
+            // Last member and leader: disband (full cleanup + FactionDisbandEvent).
+            String factionName = faction.getName();
+            plugin.getFactionManager().disbandFaction(faction, plugin,
+                    fr.redfaction.api.events.FactionDisbandEvent.Reason.COMMAND);
+            MessageUtil.sendSuccess(sender, "Vous avez quitté et dissout §e" + factionName + "§a (faction vide).");
+            return;
+        }
+
+        // Fire the leave event before removing membership: another plugin may cancel it.
+        fr.redfaction.api.events.PlayerLeaveFactionEvent leaveEvent =
+                new fr.redfaction.api.events.PlayerLeaveFactionEvent(
+                        player.getUniqueId(), faction,
+                        fr.redfaction.api.events.PlayerLeaveFactionEvent.Cause.LEAVE);
+        org.bukkit.Bukkit.getPluginManager().callEvent(leaveEvent);
+        if (leaveEvent.isCancelled()) {
+            MessageUtil.sendError(sender, "Vous ne pouvez pas quitter votre faction pour le moment.");
             return;
         }
 

@@ -58,7 +58,8 @@ public class AutoDisbandTask extends BukkitRunnable {
             // Global broadcast for inactivity disband
             Bukkit.broadcastMessage(fr.redfaction.utils.MessageUtil.getPrefix()
                     + "§cLa faction §e" + name + " §ca été dissoute pour inactivité (§e" + days + "§c jours).");
-            plugin.getFactionManager().disbandFaction(faction, plugin);
+            plugin.getFactionManager().disbandFaction(faction, plugin,
+                    fr.redfaction.api.events.FactionDisbandEvent.Reason.INACTIVITY);
         }
     }
 

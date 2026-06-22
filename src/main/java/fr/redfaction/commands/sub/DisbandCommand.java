@@ -33,7 +33,8 @@ public class DisbandCommand implements SubCommand {
         }
 
         String factionName = faction.getName();
-        plugin.getFactionManager().disbandFaction(faction, plugin);
+        plugin.getFactionManager().disbandFaction(faction, plugin,
+                fr.redfaction.api.events.FactionDisbandEvent.Reason.COMMAND);
         MessageUtil.sendSuccess(sender, "La faction §e" + factionName + " §aa été dissoute.");
     }
 

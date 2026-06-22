@@ -49,6 +49,16 @@ public class CreateCommand implements SubCommand {
 
         Faction faction = new Faction(UUID.randomUUID(), name);
         faction.addMember(player.getUniqueId(), Role.LEADER);
+
+        // Fire the create event before registering: another plugin may cancel it.
+        fr.redfaction.api.events.FactionCreateEvent event =
+                new fr.redfaction.api.events.FactionCreateEvent(faction, player);
+        org.bukkit.Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            MessageUtil.sendError(sender, "La création de la faction a été annulée.");
+            return;
+        }
+
         fp.setFactionId(faction.getId());
 
         plugin.getFactionManager().addFaction(faction);

@@ -49,6 +49,16 @@ public class RenameCommand implements SubCommand {
         }
 
         String oldName = faction.getName();
+
+        // Fire the rename event before applying: another plugin may cancel it.
+        fr.redfaction.api.events.FactionRenameEvent renameEvent =
+                new fr.redfaction.api.events.FactionRenameEvent(faction, oldName, newName, player);
+        org.bukkit.Bukkit.getPluginManager().callEvent(renameEvent);
+        if (renameEvent.isCancelled()) {
+            MessageUtil.sendError(sender, "Le renommage de la faction a été annulé.");
+            return;
+        }
+
         plugin.getFactionManager().updateName(oldName, faction);
         faction.setName(newName);
         plugin.getFactionManager().addFaction(faction); // Re-register with new name

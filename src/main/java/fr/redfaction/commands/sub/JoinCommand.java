@@ -46,6 +46,15 @@ public class JoinCommand implements SubCommand {
             return;
         }
 
+        // Fire the join event before applying membership: another plugin may cancel it.
+        fr.redfaction.api.events.PlayerJoinFactionEvent joinEvent =
+                new fr.redfaction.api.events.PlayerJoinFactionEvent(player, faction);
+        org.bukkit.Bukkit.getPluginManager().callEvent(joinEvent);
+        if (joinEvent.isCancelled()) {
+            MessageUtil.sendError(sender, "Vous ne pouvez pas rejoindre cette faction pour le moment.");
+            return;
+        }
+
         // Determine starting rank: use RECRUIT if enabled, otherwise MEMBER
         Role startRole = (plugin.getConfigUtil().isRankEnabled(Role.RECRUIT)) ? Role.RECRUIT : Role.MEMBER;
         fp.setFactionId(faction.getId());

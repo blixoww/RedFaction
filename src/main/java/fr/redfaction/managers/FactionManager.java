@@ -93,10 +93,26 @@ public class FactionManager {
     public Faction getWarZone()  { return factionsById.get(Faction.WARZONE_ID); }
 
     /**
-     * Fully disbands a faction: removes all members, claims, ally/enemy relations,
-     * deletes the save file, and broadcasts to remaining online members.
+     * Fully disbands a faction with an unspecified reason.
+     * @see #disbandFaction(Faction, RedFaction, fr.redfaction.api.events.FactionDisbandEvent.Reason)
      */
     public void disbandFaction(Faction faction, RedFaction plugin) {
+        disbandFaction(faction, plugin, fr.redfaction.api.events.FactionDisbandEvent.Reason.OTHER);
+    }
+
+    /**
+     * Fully disbands a faction: removes all members, claims, ally/enemy relations,
+     * deletes the save file, and broadcasts to remaining online members.
+     * <p>
+     * A {@link fr.redfaction.api.events.FactionDisbandEvent} is fired first (while
+     * the faction is still fully populated) so other plugins can react and clean up.
+     */
+    public void disbandFaction(Faction faction, RedFaction plugin,
+                               fr.redfaction.api.events.FactionDisbandEvent.Reason reason) {
+        // Notify other plugins before any data is cleared.
+        Bukkit.getPluginManager().callEvent(
+                new fr.redfaction.api.events.FactionDisbandEvent(faction, reason));
+
         // Remove all members' faction reference
         for (UUID uuid : faction.getMembersInternal().keySet()) {
             FPlayer fp = plugin.getFPlayerManager().getFPlayer(uuid);

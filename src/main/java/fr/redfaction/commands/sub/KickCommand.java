@@ -51,6 +51,17 @@ public class KickCommand implements SubCommand {
             return;
         }
 
+        // Fire the leave event before removing membership: another plugin may cancel it.
+        fr.redfaction.api.events.PlayerLeaveFactionEvent leaveEvent =
+                new fr.redfaction.api.events.PlayerLeaveFactionEvent(
+                        target.getUuid(), faction,
+                        fr.redfaction.api.events.PlayerLeaveFactionEvent.Cause.KICK);
+        Bukkit.getPluginManager().callEvent(leaveEvent);
+        if (leaveEvent.isCancelled()) {
+            MessageUtil.sendError(sender, "L'expulsion de §e" + target.getName() + " §ca été annulée.");
+            return;
+        }
+
         faction.removeMember(target.getUuid());
         target.setFactionId(null);
         plugin.getDataManager().saveFaction(faction);
