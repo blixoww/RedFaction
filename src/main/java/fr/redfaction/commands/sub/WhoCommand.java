@@ -18,6 +18,7 @@ import java.util.*;
 public class WhoCommand implements SubCommand {
 
     private static final SimpleDateFormat DATE = new SimpleDateFormat("dd/MM/yyyy");
+    private static final SimpleDateFormat DATE_TIME = new SimpleDateFormat("dd/MM/yyyy 'à' HH:mm");
 
     private final RedFaction plugin;
 
@@ -52,7 +53,8 @@ public class WhoCommand implements SubCommand {
         String headerName = Relation.coloredName(viewerFaction, faction);
         String tag = (faction.getRawTag() != null && !faction.getRawTag().isEmpty())
                 ? " §8[§7" + faction.getRawTag() + "§8]" : "";
-        sender.sendMessage(MessageUtil.banner(headerName + tag));
+        String bannerTitle = headerName + tag;
+        sender.sendMessage(MessageUtil.banner(bannerTitle));
 
         // Relation badge (viewer perspective)
         if (viewerFaction != null && !isOwnFaction) {
@@ -70,7 +72,7 @@ public class WhoCommand implements SubCommand {
         double maxPow = Math.max(power, faction.getMembers().size() * plugin.getConfigUtil().getMaxPower());
         int claims    = faction.getClaimCount();
         String status;
-        if (faction.isRaidable())          status = "§c§lRAIDABLE";
+        if (faction.isRaidable())          status = "§c§lATTAQUABLE";
         else if (faction.isUnderPowered()) status = "§6SOUS-POWER";
         else                               status = "§aStable";
         sender.sendMessage("§7Power : §e" + String.format("%.1f", power) + " " + powerBar(power, maxPow)
@@ -82,6 +84,20 @@ public class WhoCommand implements SubCommand {
         // Foundation date (only for normal factions where it is known)
         if (faction.isNormal() && faction.getFoundedDate() > 0)
             sender.sendMessage("§7Fondée le : §f" + DATE.format(new Date(faction.getFoundedDate())));
+
+        // Ranking / points — supplied by an external plugin (FactionEvent) if present
+        if (faction.isNormal() && fr.redfaction.api.RedFactionAPI.isAvailable()) {
+            fr.redfaction.api.RankingProvider rp = fr.redfaction.api.RedFactionAPI.get().getRankingProvider();
+            if (rp != null) {
+                int points = rp.getPoints(faction);
+                int rank   = rp.getRank(faction);
+                int total  = rp.getRankedCount();
+                String rankStr = rank > 0
+                        ? "§e#" + rank + (total > 0 ? " §7/ §f" + total : "")
+                        : "§7En attente...";
+                sender.sendMessage("§7Classement : " + rankStr + " §8| §7Points : §e" + points);
+            }
+        }
 
         // Relations (coloured by this faction's own diplomacy)
         sendRelationLine(sender, "§dAlliés", faction.getAllies(), "§d");
@@ -98,11 +114,13 @@ public class WhoCommand implements SubCommand {
             return na.compareToIgnoreCase(nb);
         });
         int online = faction.getOnlineCount();
-        sender.sendMessage("§7Membres §8(§a" + online + "§7/§f" + members.size() + "§8) :");
+        int offline = Math.max(0, members.size() - online);
+        sender.sendMessage("§7Membres §8(§7" + members.size() + "§8) : "
+                + "§a" + online + " en ligne §7• §c" + offline + " hors-ligne");
         for (UUID uuid : members) {
             sendMemberLine(sender, faction, uuid, isOwnFaction);
         }
-        sender.sendMessage(MessageUtil.SEP);
+        sender.sendMessage(MessageUtil.bannerBottom(bannerTitle));
     }
 
     private void sendMemberLine(CommandSender sender, Faction faction, UUID uuid, boolean isOwnFaction) {
@@ -112,7 +130,7 @@ public class WhoCommand implements SubCommand {
         boolean isOnline = Bukkit.getPlayer(uuid) != null;
 
         String dot = isOnline ? "§a> " : "§8> ";
-        String nameColor = isOnline ? "§f" : "§7";
+        String nameColor = isOnline ? "§a" : "§c";
 
         // Status (e.g. "Chef") shown before the name; its colour is reused for the title.
         String roleDisplay = role != null ? role.getDisplayName() : "§7?";
@@ -136,15 +154,18 @@ public class WhoCommand implements SubCommand {
             hover.append("\n§7Power : §e").append(String.format("%.1f", fp.getPower()))
                  .append("§7/§e").append(String.format("%.0f", plugin.getConfigUtil().getMaxPower()));
             hover.append("\n§7Statut : ").append(isOnline ? "§aen ligne" : "§chors-ligne");
+            // Last connection (visible for everyone, not just own faction)
+            if (isOnline) {
+                hover.append("\n§7Dernière connexion : §aen ligne");
+            } else if (fp.getLastSeen() > 0) {
+                hover.append("\n§7Dernière connexion : §f").append(DATE_TIME.format(new Date(fp.getLastSeen())));
+            }
             if (plugin.getVaultHook() != null && plugin.getVaultHook().hasEconomy()) {
                 double bal = plugin.getVaultHook().getBalance(Bukkit.getOfflinePlayer(uuid));
                 hover.append("\n§7Argent : §6").append(plugin.getVaultHook().format(bal));
             }
-            if (isOwnFaction) {
-                if (fp.getFactionJoinDate() > 0)
-                    hover.append("\n§7Rejoint : §f").append(DATE.format(new Date(fp.getFactionJoinDate())));
-                if (!isOnline && fp.getLastSeen() > 0)
-                    hover.append("\n§7Vu : §f").append(DATE.format(new Date(fp.getLastSeen())));
+            if (isOwnFaction && fp.getFactionJoinDate() > 0) {
+                hover.append("\n§7Rejoint : §f").append(DATE.format(new Date(fp.getFactionJoinDate())));
             }
         }
         MessageUtil.sendHover(sender, line, hover.toString());

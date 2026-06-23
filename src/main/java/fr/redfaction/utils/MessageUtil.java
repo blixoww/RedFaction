@@ -43,9 +43,47 @@ public class MessageUtil {
         return "§8§m----------§r §8[ §c§l" + title + " §8] §r§8§m----------§r";
     }
 
-    /** A centered title banner with consistent strikethrough bars on both sides. */
+    /** Target total visible width (in characters) of a banner, header + closing line alike. */
+    private static final int BANNER_WIDTH = 46;
+    /** Minimum dashes kept on each side so a very long title never loses its bars. */
+    private static final int BANNER_MIN_SIDE = 5;
+
+    /** Visible length of a title once colour codes ('§' or '&') are stripped. */
+    private static int visibleLength(String title) {
+        return org.bukkit.ChatColor.stripColor(
+                org.bukkit.ChatColor.translateAlternateColorCodes('&', title == null ? "" : title)).length();
+    }
+
+    /** Number of dashes per side so the banner stays centred at {@link #BANNER_WIDTH}. */
+    private static int bannerSide(String title) {
+        int side = (BANNER_WIDTH - visibleLength(title) - 2) / 2; // 2 = the spaces around the title
+        return Math.max(BANNER_MIN_SIDE, side);
+    }
+
+    private static String dashes(int count) {
+        StringBuilder sb = new StringBuilder(count);
+        for (int i = 0; i < count; i++) sb.append('-');
+        return sb.toString();
+    }
+
+    /**
+     * A centred title banner whose side bars auto-adapt to the title length, so the
+     * overall width stays constant whatever the faction name (≤ 16 chars).
+     */
     public static String banner(String title) {
-        return "§8§m--------------§r " + title + " §r§8§m--------------§r";
+        String bar = dashes(bannerSide(title));
+        return "§8§m" + bar + "§r " + title + " §r§8§m" + bar + "§r";
+    }
+
+    /**
+     * A solid strikethrough bar matching the exact total width of
+     * {@link #banner(String)} for the same title, so a menu's closing line lines up
+     * with its header.
+     */
+    public static String bannerBottom(String title) {
+        int side = bannerSide(title);
+        int total = side + 1 + visibleLength(title) + 1 + side; // dashes + space + title + space + dashes
+        return "§8§m" + dashes(total) + "§r";
     }
 
     /** Returns the prefix string (for use in messages without sending). */

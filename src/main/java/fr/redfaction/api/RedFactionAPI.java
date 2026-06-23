@@ -32,6 +32,9 @@ public class RedFactionAPI {
     private static RedFactionAPI instance;
     private final RedFaction plugin;
 
+    /** Optional external ranking source (e.g. FactionEvent); null if none registered. */
+    private RankingProvider rankingProvider;
+
     private RedFactionAPI(RedFaction plugin) {
         this.plugin = plugin;
     }
@@ -59,6 +62,28 @@ public class RedFactionAPI {
     /** The RedFaction plugin version (from plugin.yml). */
     public String getVersion() {
         return plugin.getDescription().getVersion();
+    }
+
+    // ================================================================
+    //  Ranking provider (optional, supplied by an external plugin)
+    // ================================================================
+
+    /**
+     * Registers an external faction ranking source. The last registration wins.
+     * Pass {@code null} to clear it (e.g. when the providing plugin disables).
+     */
+    public void setRankingProvider(RankingProvider provider) {
+        this.rankingProvider = provider;
+    }
+
+    /** Returns the registered ranking provider, or {@code null} if none. */
+    public RankingProvider getRankingProvider() {
+        return rankingProvider;
+    }
+
+    /** True if a ranking provider is available (points/rank can be shown). */
+    public boolean hasRankingProvider() {
+        return rankingProvider != null;
     }
 
     // ================================================================
