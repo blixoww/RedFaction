@@ -19,7 +19,7 @@ public class VersionCommand implements SubCommand {
         sender.sendMessage(MessageUtil.header("Version"));
         sender.sendMessage(t1 + t2 + " §7v" + plugin.getDescription().getVersion());
         sender.sendMessage("§7Compatible : §fSpigot 1.8.9");
-        sender.sendMessage("§7Auteur : §fRedConflict");
+        sender.sendMessage("§7Auteur : §fleziink");
         sender.sendMessage("§8§m-----------------------------------");
     }
 

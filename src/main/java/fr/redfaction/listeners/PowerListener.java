@@ -23,11 +23,18 @@ public class PowerListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerDeath(PlayerDeathEvent event) {
-        FPlayer fp = plugin.getFPlayerManager().getFPlayer(event.getEntity().getUniqueId());
+        Player victim = event.getEntity();
+
+        // Power is only lost when killed by ANOTHER player (PvP), not on PvE/environmental death.
+        Player killer = victim.getKiller();
+        if (killer == null || killer.getUniqueId().equals(victim.getUniqueId())) return;
+
+        FPlayer fp = plugin.getFPlayerManager().getFPlayer(victim.getUniqueId());
         if (fp == null) return;
 
         double loss  = plugin.getConfigUtil().getPowerLossOnDeath();
         fp.subtractPower(loss);
+        fp.setPowerRegenAnchor(System.currentTimeMillis()); // start the regen timer from this death
         double after = fp.getPower();
         double max   = plugin.getConfigUtil().getMaxPower();
 

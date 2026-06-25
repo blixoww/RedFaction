@@ -116,41 +116,57 @@ public class PermCommand implements SubCommand {
         }
     }
 
+    private static final PermTarget[] GRID_ROWS = {
+            PermTarget.RECRUIT, PermTarget.MEMBER, PermTarget.OFFICER,
+            PermTarget.ALLY, PermTarget.TRUCE, PermTarget.NEUTRAL, PermTarget.ENEMY };
+
     private void showOverview(CommandSender sender, Faction faction) {
-        sender.sendMessage(MessageUtil.header("Permissions — " + faction.getName()));
-        sender.sendMessage("§7Cibles: §f" + PermTarget.RECRUIT.name().toLowerCase() + " "
-                + PermTarget.MEMBER.name().toLowerCase() + " " + PermTarget.OFFICER.name().toLowerCase()
-                + " §8| §f" + PermTarget.ALLY.name().toLowerCase() + " " + PermTarget.TRUCE.name().toLowerCase()
-                + " " + PermTarget.NEUTRAL.name().toLowerCase() + " " + PermTarget.ENEMY.name().toLowerCase());
-        // Compact grid: one line per target, colour = allowed/denied per permission
-        StringBuilder legend = new StringBuilder("§8Perms: §7");
-        for (FactionPermission p : FactionPermission.values()) legend.append(p.name().toLowerCase()).append(' ');
-        sender.sendMessage(legend.toString().trim());
-        for (PermTarget t : new PermTarget[]{PermTarget.RECRUIT, PermTarget.MEMBER, PermTarget.OFFICER,
-                PermTarget.ALLY, PermTarget.TRUCE, PermTarget.NEUTRAL, PermTarget.ENEMY}) {
-            sender.sendMessage(rowSummary(faction, t));
+        String title = "§bPermissions §8— §f" + faction.getName();
+        sender.sendMessage(MessageUtil.banner(title));
+        sender.sendMessage("§8» §a✔ §7autorisé  §c✘ §7interdit  §8(§7survol = détail, clic = ouvrir§8)");
+        for (PermTarget t : GRID_ROWS) {
+            sendRowSummary(sender, faction, t);
         }
-        sender.sendMessage("§8» §7/f perm §f<cible> §7pour le détail, §f<cible> <perm> <on|off> §7pour modifier.");
-        sender.sendMessage("§8§m-----------------------------------");
+        sender.sendMessage("§8» §7Modifier : §f/f perm <cible> <perm> <on|off>");
+        sender.sendMessage(MessageUtil.bannerBottom(title));
     }
 
-    private String rowSummary(Faction faction, PermTarget t) {
-        StringBuilder sb = new StringBuilder(t.getDisplayName()).append(" §8» ");
+    /** One clickable, hover-detailed line per target: short codes grouped Territoire | Gestion. */
+    private void sendRowSummary(CommandSender sender, Faction faction, PermTarget t) {
+        StringBuilder terr = new StringBuilder(), mgmt = new StringBuilder(), hover = new StringBuilder();
+        int allowed = 0, total = 0;
+        hover.append(t.getDisplayName()).append("§r\n");
         for (FactionPermission p : FactionPermission.values()) {
             boolean on = faction.rowHasPerm(t, p);
-            sb.append(on ? "§a" : "§c").append(shortName(p)).append(' ');
+            total++;
+            if (on) allowed++;
+            (p.isTerritory() ? terr : mgmt).append(on ? "§a" : "§c").append(shortName(p)).append(' ');
+            hover.append(on ? "§a✔ " : "§c✘ ").append("§f").append(p.name().toLowerCase())
+                 .append(" §8- §7").append(p.getDescription()).append('\n');
         }
-        return sb.toString().trim();
+        String line = "§8> " + t.getDisplayName() + " §8(§7" + allowed + "§8/§7" + total + "§8) §8» "
+                + terr.toString().trim() + " §8| " + mgmt.toString().trim();
+        hover.append("§8Cliquez pour §e/f perm ").append(t.name().toLowerCase());
+        MessageUtil.sendAction(sender, line, hover.toString().trim(),
+                "/f perm " + t.name().toLowerCase(), true);
     }
 
     private void showRow(CommandSender sender, Faction faction, PermTarget t) {
-        sender.sendMessage(MessageUtil.header("Perms " + t.getDisplayName() + " §8— " + faction.getName()));
+        String title = "§bPerms " + t.getDisplayName() + " §8— §f" + faction.getName();
+        sender.sendMessage(MessageUtil.banner(title));
+        sendPermGroup(sender, faction, t, true);   // Territoire
+        sendPermGroup(sender, faction, t, false);  // Gestion
+        sender.sendMessage(MessageUtil.bannerBottom(title));
+    }
+
+    private void sendPermGroup(CommandSender sender, Faction faction, PermTarget t, boolean territory) {
+        sender.sendMessage("§8» §7" + (territory ? "Territoire" : "Gestion"));
         for (FactionPermission p : FactionPermission.values()) {
+            if (p.isTerritory() != territory) continue;
             boolean on = faction.rowHasPerm(t, p);
-            sender.sendMessage("  " + (on ? "§a[on]  " : "§c[off] ") + "§f" + p.name().toLowerCase()
+            sender.sendMessage("  " + (on ? "§a✔ " : "§c✘ ") + "§f" + p.name().toLowerCase()
                     + " §8- §7" + p.getDescription());
         }
-        sender.sendMessage("§8§m-----------------------------------");
     }
 
     /** A short 3-letter tag for compact grid display. */

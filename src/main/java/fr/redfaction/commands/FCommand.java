@@ -21,7 +21,7 @@ public class FCommand implements CommandExecutor, TabCompleter {
     private static final Set<String> FACTION_ARG = new HashSet<>(Arrays.asList(
             "who", "show", "info", "ally", "truce", "enemy", "neutral", "join"));
     private static final Set<String> PLAYER_ARG = new HashSet<>(Arrays.asList(
-            "invite", "kick", "promote", "demote", "transfer", "ban", "unban", "title", "distance", "admin"));
+            "invite", "kick", "promote", "demote", "transfer", "ban", "unban", "title", "admin"));
 
     private final Map<String, SubCommand> subCommands = new LinkedHashMap<>();
     private final RedFaction plugin;
@@ -75,7 +75,9 @@ public class FCommand implements CommandExecutor, TabCompleter {
         register("autoclaim", new AutoclaimCommand(plugin));
         // Territory & Player utilities
         register("near",      new NearCommand(plugin));
-        register("distance",  new DistanceCommand());
+        // Power
+        register("power",     new PowerCommand(plugin));
+        register("p",         subCommands.get("power"));
         // Ban system
         register("ban",       new BanCommand(plugin));
         register("unban",     new UnbanCommand(plugin));
@@ -169,12 +171,22 @@ public class FCommand implements CommandExecutor, TabCompleter {
                 for (PermTarget t : PermTarget.values()) if (t != PermTarget.LEADER) opts.add(t.name().toLowerCase());
                 return filter(opts, args[1]);
             }
+            if (sub.equals("power") || sub.equals("p")) {
+                if (!sender.hasPermission("redfaction.admin")) return Collections.emptyList();
+                return filter(Arrays.asList("set", "add", "remove", "reset"), args[1]);
+            }
             if (sub.equals("map"))        return filter(Collections.singletonList("auto"), args[1]);
             if (sub.equals("chat") || sub.equals("c")) return filter(Arrays.asList("p", "f", "a", "t"), args[1]);
-            if (sub.equals("chest"))      return filter(Arrays.asList("put", "take", "log", "toggle"), args[1]);
             if (sub.equals("access"))     return filter(Arrays.asList("player", "faction", "list", "revoke"), args[1]);
             if (FACTION_ARG.contains(sub)) return filter(factionNames(), args[1]);
             if (PLAYER_ARG.contains(sub))  return filter(onlineNames(), args[1]);
+            return Collections.emptyList();
+        }
+
+        if ((sub.equals("power") || sub.equals("p")) && args.length == 3 && sender.hasPermission("redfaction.admin")) {
+            String a = args[1].toLowerCase();
+            if (a.equals("set") || a.equals("add") || a.equals("remove") || a.equals("reset"))
+                return filter(onlineNames(), args[2]);
             return Collections.emptyList();
         }
 

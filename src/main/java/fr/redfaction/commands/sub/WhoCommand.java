@@ -1,5 +1,7 @@
 package fr.redfaction.commands.sub;
 
+import fr.redfaction.api.RankingProvider;
+import fr.redfaction.api.RedFactionAPI;
 import fr.redfaction.commands.SubCommand;
 import fr.redfaction.entity.FPlayer;
 import fr.redfaction.entity.Faction;
@@ -86,8 +88,8 @@ public class WhoCommand implements SubCommand {
             sender.sendMessage("§7Fondée le : §f" + DATE.format(new Date(faction.getFoundedDate())));
 
         // Ranking / points — supplied by an external plugin (FactionEvent) if present
-        if (faction.isNormal() && fr.redfaction.api.RedFactionAPI.isAvailable()) {
-            fr.redfaction.api.RankingProvider rp = fr.redfaction.api.RedFactionAPI.get().getRankingProvider();
+        if (faction.isNormal() && RedFactionAPI.isAvailable()) {
+            RankingProvider rp = RedFactionAPI.get().getRankingProvider();
             if (rp != null) {
                 int points = rp.getPoints(faction);
                 int rank   = rp.getRank(faction);

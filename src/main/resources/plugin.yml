@@ -2,7 +2,7 @@ name: RedFaction
 version: '1.0'
 main: fr.redfaction.main.RedFaction
 description: Competitive PvP Factions plugin for 1.8.9
-authors: [RedConflict]
+authors: [leziink]
 softdepend: [Vault, WorldGuard, WorldEdit, PlaceholderAPI, LuckPerms]
 
 commands:

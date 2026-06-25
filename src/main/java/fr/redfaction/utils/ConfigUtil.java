@@ -17,9 +17,10 @@ public class ConfigUtil {
     private FileConfiguration cfg() { return plugin.getConfig(); }
 
     // ---- Power ----
-    public double getMaxPower()            { return cfg().getDouble("power.max", 10.0); }
-    public double getPowerLossOnDeath()    { return cfg().getDouble("power.loss_on_death", 2.0); }
-    public double getPowerRegenPerMinute() { return cfg().getDouble("power.regen_per_minute", 0.1); }
+    public double getMaxPower()                { return cfg().getDouble("power.max", 10.0); }
+    public double getPowerLossOnDeath()        { return cfg().getDouble("power.loss_on_death", 2.0); }
+    /** Minutes required to regenerate 1 power point when below maximum (0 disables regen). */
+    public int getPowerRegenMinutesPerPoint()  { return cfg().getInt("power.regen_minutes_per_point", 30); }
 
     // ---- PvP ----
     public boolean isFriendlyFireEnabled() { return cfg().getBoolean("pvp.friendly_fire", false); }

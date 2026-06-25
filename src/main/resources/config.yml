@@ -1,7 +1,8 @@
 power:
   max: 10.0
   loss_on_death: 2.0
-  regen_per_minute: 0.1
+  # Minutes needed to regenerate 1 power point while below the maximum (0 disables regen).
+  regen_minutes_per_point: 30
 
 pvp:
   friendly_fire: false

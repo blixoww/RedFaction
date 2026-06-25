@@ -107,6 +107,7 @@ public final class RedFaction extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new AutomapListener(this, fCmd.getMapCommand()), this);
         getServer().getPluginManager().registerEvents(new CombatTagListener(this), this);
         getServer().getPluginManager().registerEvents(new fr.redfaction.listeners.PermGuiListener(this), this);
+        getServer().getPluginManager().registerEvents(new fr.redfaction.listeners.ChestGuiListener(this), this);
 
         // Register commands
         getCommand("f").setExecutor(fCmd);

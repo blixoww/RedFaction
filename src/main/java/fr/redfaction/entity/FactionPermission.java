@@ -18,7 +18,7 @@ public enum FactionPermission {
     USE       (true,  "Interactions diverses (cadres, PNJ...)"),
 
     // ---- Management ----
-    FCHEST    (false, "Retirer du coffre de faction"),
+    FCHEST    (false, "Accès au coffre de faction"),
     CLAIM     (false, "Claim / unclaim / autoclaim"),
     INVITE    (false, "Inviter des joueurs"),
     SETHOME   (false, "Définir le home"),

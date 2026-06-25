@@ -69,6 +69,14 @@ public class ClaimCommand implements SubCommand {
             return;
         }
 
+        // Normal claim — block entirely while under-powered (territory already raidable)
+        if (faction.isUnderPowered()) {
+            MessageUtil.sendError(sender, "§l[!] §r§cVotre faction est en SOUS-POWER (§e"
+                    + String.format("%.1f", faction.getPower()) + "§c/§e" + faction.getClaimCount()
+                    + "§c claims) — impossible de claim tant que votre territoire est raidable !");
+            return;
+        }
+
         // Normal claim — check power limit
         if (faction.getClaimCount() >= faction.getPower()) {
             MessageUtil.sendError(sender, "Power insuffisant ! (§e" + faction.getClaimCount()

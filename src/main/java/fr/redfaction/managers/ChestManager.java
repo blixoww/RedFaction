@@ -1,28 +1,37 @@
 package fr.redfaction.managers;
 
+import fr.redfaction.entity.Faction;
 import fr.redfaction.main.RedFaction;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.HumanEntity;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Level;
 
 /**
- * Manages virtual faction chests (command-based, no GUI).
- * Each faction chest is stored as a YAML file under data/chests/<uuid>.yml.
- * Log entries are stored as a List<String> in the same file.
+ * Manages the shared faction chests as real {@link Inventory} GUIs.
+ * Each faction has a single live inventory shared by all members; multiple
+ * members can have it open at once and changes are kept in that one instance.
+ * Contents are persisted to data/chests/&lt;uuid&gt;.yml on close, autosave and disable.
  */
 public class ChestManager {
 
     private final RedFaction plugin;
     private final File chestsDir;
 
-    // In-memory: faction UUID -> item array
-    private final Map<UUID, ItemStack[]> contents = new HashMap<>();
-    // In-memory: faction UUID -> log lines (newest at end)
-    private final Map<UUID, List<String>> logs = new HashMap<>();
+    // Faction UUID -> live shared inventory (loaded lazily on first /f chest)
+    private final Map<UUID, Inventory> inventories = new HashMap<>();
 
     public ChestManager(RedFaction plugin) {
         this.plugin = plugin;
@@ -30,63 +39,77 @@ public class ChestManager {
         this.chestsDir.mkdirs();
     }
 
-    private int slots() {
-        return plugin.getConfigUtil().getDefaultChestSlots();
+    /** Marks an inventory as a faction chest and remembers which faction owns it. */
+    public static final class ChestHolder implements InventoryHolder {
+        private final UUID factionId;
+        private Inventory inventory;
+        ChestHolder(UUID factionId) { this.factionId = factionId; }
+        public UUID getFactionId() { return factionId; }
+        void setInventory(Inventory inv) { this.inventory = inv; }
+        @Override public Inventory getInventory() { return inventory; }
     }
 
-    public ItemStack[] getContents(UUID factionId) {
-        // NB: load() mutates both maps, so it must NOT be called from inside
-        // Map.computeIfAbsent (would throw ConcurrentModificationException).
-        if (!contents.containsKey(factionId)) load(factionId);
-        return contents.get(factionId);
+    /** Returns (loading/creating if needed) the shared inventory for a faction. */
+    public Inventory getInventory(Faction faction) {
+        UUID id = faction.getId();
+        Inventory inv = inventories.get(id);
+        if (inv == null) {
+            inv = createInventory(faction);
+            inventories.put(id, inv);
+        }
+        return inv;
     }
 
-    public List<String> getLog(UUID factionId) {
-        if (!logs.containsKey(factionId)) load(factionId);
-        return logs.get(factionId);
+    private Inventory createInventory(Faction faction) {
+        ChestHolder holder = new ChestHolder(faction.getId());
+        Inventory inv = Bukkit.createInventory(holder, size(), title(faction));
+        holder.setInventory(inv);
+        loadItems(inv, faction.getId());
+        return inv;
     }
 
-    /** Adds an item to the first empty slot. Returns the slot index, or -1 if full. */
-    public int addItem(UUID factionId, ItemStack item) {
-        ItemStack[] arr = getContents(factionId);
-        for (int i = 0; i < arr.length; i++) {
-            if (arr[i] == null || arr[i].getType() == org.bukkit.Material.AIR) {
-                arr[i] = item;
-                return i;
+    /** Inventory size, clamped to a valid value (multiple of 9, between 9 and 54). */
+    private int size() {
+        int s = plugin.getConfigUtil().getDefaultChestSlots();
+        if (s < 9) s = 9;
+        if (s > 54) s = 54;
+        return (s / 9) * 9;
+    }
+
+    private String title(Faction faction) {
+        String name = ChatColor.stripColor(faction.getName());
+        if (name.length() > 18) name = name.substring(0, 18);
+        return "§8Coffre §7» §c" + name; // stays within the 1.8 32-char title limit
+    }
+
+    private void loadItems(Inventory inv, UUID factionId) {
+        File file = new File(chestsDir, factionId.toString() + ".yml");
+        if (!file.exists()) return;
+        YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+        if (cfg.isConfigurationSection("items")) {
+            for (String key : cfg.getConfigurationSection("items").getKeys(false)) {
+                try {
+                    int idx = Integer.parseInt(key);
+                    if (idx >= 0 && idx < inv.getSize()) {
+                        inv.setItem(idx, cfg.getItemStack("items." + key));
+                    }
+                } catch (NumberFormatException ignored) {}
             }
         }
-        return -1;
     }
 
-    /** Takes the item at the given slot. Returns null if slot is empty/invalid. */
-    public ItemStack takeItem(UUID factionId, int slot) {
-        ItemStack[] arr = getContents(factionId);
-        if (slot < 0 || slot >= arr.length) return null;
-        ItemStack item = arr[slot];
-        if (item == null || item.getType() == org.bukkit.Material.AIR) return null;
-        arr[slot] = null;
-        return item;
-    }
-
-    public void addLog(UUID factionId, String entry) {
-        List<String> log = getLog(factionId);
-        String timestamp = new java.text.SimpleDateFormat("dd/MM HH:mm").format(new java.util.Date());
-        log.add("[" + timestamp + "] " + entry);
-        // Keep at most 200 log entries
-        while (log.size() > 200) log.remove(0);
-    }
-
+    /** Persists a faction's chest to disk. No-op if it was never opened this session. */
     public void save(UUID factionId) {
+        Inventory inv = inventories.get(factionId);
+        if (inv == null) return;
         File file = new File(chestsDir, factionId.toString() + ".yml");
         YamlConfiguration cfg = new YamlConfiguration();
-        ItemStack[] arr = contents.getOrDefault(factionId, new ItemStack[0]);
+        ItemStack[] arr = inv.getContents();
         for (int i = 0; i < arr.length; i++) {
-            if (arr[i] != null && arr[i].getType() != org.bukkit.Material.AIR) {
+            if (arr[i] != null && arr[i].getType() != Material.AIR) {
                 cfg.set("items." + i, arr[i]);
             }
         }
-        List<String> log = logs.getOrDefault(factionId, Collections.emptyList());
-        cfg.set("log", log);
         try {
             cfg.save(file);
         } catch (IOException e) {
@@ -94,39 +117,19 @@ public class ChestManager {
         }
     }
 
-    private void load(UUID factionId) {
-        File file = new File(chestsDir, factionId.toString() + ".yml");
-        if (!file.exists()) {
-            contents.put(factionId, new ItemStack[slots()]);
-            logs.put(factionId, new ArrayList<>());
-            return;
-        }
-        YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
-        ItemStack[] arr = new ItemStack[slots()];
-        if (cfg.isConfigurationSection("items")) {
-            for (String key : cfg.getConfigurationSection("items").getKeys(false)) {
-                try {
-                    int idx = Integer.parseInt(key);
-                    if (idx >= 0 && idx < arr.length) {
-                        arr[idx] = cfg.getItemStack("items." + key);
-                    }
-                } catch (NumberFormatException ignored) {}
+    /** Saves all loaded chests (called from AutoSaveTask and on disable). */
+    public void saveAll() {
+        for (UUID id : inventories.keySet()) save(id);
+    }
+
+    /** Removes chest data on faction disband, closing it for any current viewers. */
+    public void remove(UUID factionId) {
+        Inventory inv = inventories.remove(factionId);
+        if (inv != null) {
+            for (HumanEntity viewer : new ArrayList<>(inv.getViewers())) {
+                viewer.closeInventory();
             }
         }
-        contents.put(factionId, arr);
-        List<String> log = cfg.getStringList("log");
-        logs.put(factionId, new ArrayList<>(log));
-    }
-
-    /** Saves all loaded chests (called from AutoSaveTask). */
-    public void saveAll() {
-        for (UUID id : contents.keySet()) save(id);
-    }
-
-    /** Removes chest data on faction disband. */
-    public void remove(UUID factionId) {
-        contents.remove(factionId);
-        logs.remove(factionId);
         new File(chestsDir, factionId.toString() + ".yml").delete();
     }
 }

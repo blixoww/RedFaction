@@ -250,6 +250,7 @@ public class DataManager {
                 String name = obj.get("name").getAsString();
                 FPlayer fp = new FPlayer(uuid, name);
                 fp.setPower(obj.get("power").getAsDouble());
+                if (obj.has("powerRegenAnchor")) fp.setPowerRegenAnchor(obj.get("powerRegenAnchor").getAsLong());
                 if (obj.has("factionId") && !obj.get("factionId").isJsonNull()) {
                     fp.setFactionId(UUID.fromString(obj.get("factionId").getAsString()));
                 }
@@ -417,6 +418,7 @@ public class DataManager {
             obj.addProperty("uuid",            fp.getUuid().toString());
             obj.addProperty("name",            fp.getName());
             obj.addProperty("power",           fp.getPower());
+            obj.addProperty("powerRegenAnchor", fp.getPowerRegenAnchor());
             obj.addProperty("factionId",       fp.getFactionId() != null ? fp.getFactionId().toString() : null);
             obj.addProperty("lastSeen",        fp.getLastSeen());
             obj.addProperty("factionJoinDate", fp.getFactionJoinDate());

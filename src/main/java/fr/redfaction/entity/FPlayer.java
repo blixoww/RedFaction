@@ -19,6 +19,7 @@ public class FPlayer {
     private String name;
     private UUID factionId;
     private double power;
+    private long powerRegenAnchor; // epoch millis: reference point for time-based power regen (0 = not regenerating)
     private long lastSeen;
     private long factionJoinDate;
     private String customTitle;
@@ -71,6 +72,24 @@ public class FPlayer {
         this.power = this.power - amount; // may go negative (faction becomes raidable)
     }
 
+    /**
+     * Estimated time (in milliseconds) until this player reaches full power again,
+     * based on the time-based regen rate (1 power per configured interval).
+     * Returns 0 if already full (or boosted), or -1 if regen is disabled.
+     */
+    public long getMillisUntilFull() {
+        double max = RedFaction.getInstance().getConfigUtil().getMaxPower();
+        if (power >= max) return 0;
+        int minutesPerPoint = RedFaction.getInstance().getConfigUtil().getPowerRegenMinutesPerPoint();
+        if (minutesPerPoint <= 0) return -1;
+        long interval = minutesPerPoint * 60_000L;
+        long needed = (long) Math.ceil(max - power);
+        long sinceAnchor = powerRegenAnchor <= 0
+                ? 0
+                : Math.min(interval, System.currentTimeMillis() - powerRegenAnchor);
+        return Math.max(0L, needed * interval - sinceAnchor);
+    }
+
     // ---- Invite helpers ----
 
     public void addPendingInvite(UUID factionId) {
@@ -95,6 +114,8 @@ public class FPlayer {
     public void setFactionId(UUID id)        { this.factionId = id; }
     public double getPower()                 { return power; }
     public void setPower(double power)       { this.power = power; }
+    public long getPowerRegenAnchor()        { return powerRegenAnchor; }
+    public void setPowerRegenAnchor(long t)  { this.powerRegenAnchor = t; }
     public long getLastSeen()                { return lastSeen; }
     public void setLastSeen(long t)          { this.lastSeen = t; }
     public long getFactionJoinDate()         { return factionJoinDate; }
