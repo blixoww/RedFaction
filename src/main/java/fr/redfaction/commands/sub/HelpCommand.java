@@ -29,7 +29,7 @@ public class HelpCommand implements SubCommand {
         CATS.add(new Cat("§b", "Home",      "home", "sethome", "delhome", "setspawn", "warp", "setwarp", "delwarp"));
         CATS.add(new Cat("§d", "Relations", "ally", "truce", "enemy", "neutral"));
         CATS.add(new Cat("§3", "Permissions","perm", "access", "ban", "unban", "banlist"));
-        CATS.add(new Cat("§9", "Chat",      "chat", "allychat", "announce"));
+        CATS.add(new Cat("§9", "Chat",      "chat", "announce"));
         CATS.add(new Cat("§2", "Coffre",    "chest"));
         CATS.add(new Cat("§c", "Admin",     "admin", "safezone", "warzone", "setspawn", "reload", "version"));
     }

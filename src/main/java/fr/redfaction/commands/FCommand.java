@@ -59,8 +59,6 @@ public class FCommand implements CommandExecutor, TabCompleter {
         // Chat
         register("chat",      new ChatCommand(plugin));
         register("c",         subCommands.get("chat"));
-        register("allychat",  new AllyChatCommand(plugin));
-        register("ac",        subCommands.get("allychat"));
         // Relations
         register("ally",      new AllyCommand(plugin));
         register("truce",     new TruceCommand(plugin));

@@ -148,7 +148,7 @@ public class Faction {
     public void removeClaim(FLocation loc) { claims.remove(loc); }
     public boolean hasClaim(FLocation loc) { return claims.contains(loc); }
     public int getClaimCount()             { return claims.size(); }
-    public void clearClaims()              { claims.clear(); } // Added clearClaims method
+    public void clearClaims()              { claims.clear(); }
 
     // ================================================================
     //  Spawn
