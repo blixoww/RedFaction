@@ -44,7 +44,7 @@ public class InviteCommand implements SubCommand {
             MessageUtil.sendError(sender, "§e" + target.getName() + " §cest banni de votre faction.");
             return;
         }
-        int maxMembers = plugin.getConfigUtil().getMaxMembers();
+        int maxMembers = plugin.getLevelManager().getMaxMembers(faction.getLevel());
         if (maxMembers >= 0 && faction.getMembers().size() >= maxMembers) {
             MessageUtil.sendError(sender, "Votre faction est pleine (§e" + maxMembers + "§c membres max).");
             return;

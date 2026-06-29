@@ -40,7 +40,7 @@ public class JoinCommand implements SubCommand {
             MessageUtil.sendError(sender, "§e" + faction.getName() + " §cest sur invitation uniquement.");
             return;
         }
-        int maxMembers = plugin.getConfigUtil().getMaxMembers();
+        int maxMembers = plugin.getLevelManager().getMaxMembers(faction.getLevel());
         if (maxMembers >= 0 && faction.getMembers().size() >= maxMembers) {
             MessageUtil.sendError(sender, "§e" + faction.getName() + " §cest pleine (§e" + maxMembers + "§c membres max).");
             return;

@@ -47,12 +47,13 @@ public class TruceCommand implements SubCommand {
             return;
         }
 
-        int maxTruces = plugin.getConfigUtil().getMaxTruces();
+        int maxTruces = plugin.getLevelManager().getMaxTruces(faction.getLevel());
         if (maxTruces >= 0 && faction.getTruces().size() >= maxTruces) {
             MessageUtil.sendError(sender, "Vous avez atteint la limite de trêves (§e" + maxTruces + "§c).");
             return;
         }
-        if (maxTruces >= 0 && target.getTruces().size() >= maxTruces) {
+        int targetMaxTruces = plugin.getLevelManager().getMaxTruces(target.getLevel());
+        if (targetMaxTruces >= 0 && target.getTruces().size() >= targetMaxTruces) {
             MessageUtil.sendError(sender, "§e" + target.getName() + " §ca déjà atteint sa limite de trêves.");
             return;
         }

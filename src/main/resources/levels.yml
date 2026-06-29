@@ -1,0 +1,67 @@
+# ================================================================
+#  Niveaux de faction (/f upgrade, /f levels, /f setlevel)
+# ================================================================
+# Une faction est créée gratuitement au niveau 0. Elle peut être
+# améliorée jusqu'au niveau le plus élevé défini ci-dessous en payant
+# ('cost', déduit de la monnaie Vault du joueur qui fait /f upgrade).
+#
+# Chaque niveau définit ses avantages :
+#   cost         : montant à payer pour ATTEINDRE ce niveau (0 pour le niveau 0)
+#   max_members  : nombre maximum de membres
+#   max_allies   : nombre maximum d'alliés
+#   max_truces   : nombre maximum de trêves
+#   max_warps    : nombre maximum de warps
+#   chest        : état du coffre — NONE (verrouillé) / SMALL (petit) / BIG (grand)
+#
+# Note : abaisser le niveau d'une faction (admin) ne retire jamais les
+# membres/warps/relations déjà en place ; seuls les nouveaux ajouts sont
+# bloqués tant que la faction dépasse la limite du niveau.
+
+# Taille (en slots, multiples de 9) des deux états de coffre débloqués.
+chest:
+  small_slots: 27
+  big_slots: 54
+
+levels:
+  '0':
+    cost: 0
+    max_members: 5
+    max_allies: 1
+    max_truces: 1
+    max_warps: 1
+    chest: NONE
+  '1':
+    cost: 5000
+    max_members: 7
+    max_allies: 1
+    max_truces: 2
+    max_warps: 2
+    chest: SMALL
+  '2':
+    cost: 15000
+    max_members: 10
+    max_allies: 2
+    max_truces: 2
+    max_warps: 3
+    chest: SMALL
+  '3':
+    cost: 35000
+    max_members: 13
+    max_allies: 2
+    max_truces: 3
+    max_warps: 4
+    chest: BIG
+  '4':
+    cost: 75000
+    max_members: 16
+    max_allies: 3
+    max_truces: 3
+    max_warps: 5
+    chest: BIG
+  '5':
+    cost: 150000
+    max_members: 20
+    max_allies: 4
+    max_truces: 4
+    max_warps: 6
+    chest: BIG

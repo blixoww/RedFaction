@@ -56,7 +56,8 @@ public class NearCommand implements SubCommand {
             }
         }
 
-        sender.sendMessage(MessageUtil.header("Joueurs proches (rayon " + radius + "m)"));
+        String title = "§c§lProches §8(" + radius + "m)";
+        sender.sendMessage(MessageUtil.banner(title));
         if (!same.isEmpty())    sender.sendMessage("§aMembres §8: §r" + String.join("§7, ", same));
         if (!allies.isEmpty())  sender.sendMessage("§dAlliés §8: §r"  + String.join("§7, ", allies));
         if (!truces.isEmpty())  sender.sendMessage("§dTrêves §8: §r"  + String.join("§7, ", truces));
@@ -65,7 +66,7 @@ public class NearCommand implements SubCommand {
         if (same.isEmpty() && allies.isEmpty() && truces.isEmpty() && enemies.isEmpty() && neutral.isEmpty()) {
             sender.sendMessage("§7Aucun joueur dans un rayon de §e" + radius + "§7 blocs.");
         }
-        sender.sendMessage("§8§m-----------------------------------");
+        sender.sendMessage(MessageUtil.bannerBottom(title));
     }
 
     @Override public String getPermission()   { return "redfaction.use"; }

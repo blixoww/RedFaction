@@ -50,6 +50,9 @@ public class Faction {
     // Faction chest
     private boolean chestEnabled;
 
+    // Upgrade level (0 = free starting level). Drives member/relation/warp/chest limits.
+    private int level;
+
     // Epoch millis when the last member went offline (for auto-disband)
     private long lastAllOfflineEpoch;
 
@@ -87,6 +90,7 @@ public class Faction {
         this.warps                = new LinkedHashMap<>();
         this.lastAnnouncementTime = 0L;
         this.chestEnabled         = true;
+        this.level                = 0;
         this.hasSpawn             = false;
     }
 
@@ -317,6 +321,13 @@ public class Faction {
 
     public boolean isChestEnabled()          { return chestEnabled; }
     public void setChestEnabled(boolean val) { this.chestEnabled = val; }
+
+    // ================================================================
+    //  Upgrade level
+    // ================================================================
+
+    public int getLevel()             { return level; }
+    public void setLevel(int level)   { this.level = Math.max(0, level); }
 
     // ================================================================
     //  Special zone checks

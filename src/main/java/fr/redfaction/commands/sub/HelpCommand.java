@@ -23,7 +23,7 @@ public class HelpCommand implements SubCommand {
 
     private static final List<Cat> CATS = new ArrayList<>();
     static {
-        CATS.add(new Cat("§6", "Faction",   "create", "disband", "rename", "desc", "motd", "tag", "open", "close", "show", "list"));
+        CATS.add(new Cat("§6", "Faction",   "create", "disband", "rename", "desc", "motd", "tag", "open", "close", "show", "list", "upgrade", "levels"));
         CATS.add(new Cat("§e", "Membres",   "invite", "join", "leave", "kick", "promote", "demote", "transfer", "title", "power"));
         CATS.add(new Cat("§a", "Territoire","claim", "unclaim", "autoclaim", "map", "near", "territory"));
         CATS.add(new Cat("§b", "Home",      "home", "sethome", "delhome", "setspawn", "warp", "setwarp", "delwarp"));
@@ -31,7 +31,7 @@ public class HelpCommand implements SubCommand {
         CATS.add(new Cat("§3", "Permissions","perm", "access", "ban", "unban", "banlist"));
         CATS.add(new Cat("§9", "Chat",      "chat", "announce"));
         CATS.add(new Cat("§2", "Coffre",    "chest"));
-        CATS.add(new Cat("§c", "Admin",     "admin", "safezone", "warzone", "setspawn", "reload", "version"));
+        CATS.add(new Cat("§c", "Admin",     "admin", "setlevel", "safezone", "warzone", "setspawn", "reload", "version"));
     }
 
     /** Plain category names, for tab completion. */

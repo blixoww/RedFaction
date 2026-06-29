@@ -214,6 +214,9 @@ public class DataManager {
             if (obj.has("foundedDate")) {
                 faction.setFoundedDate(obj.get("foundedDate").getAsLong());
             }
+            if (obj.has("level")) {
+                faction.setLevel(obj.get("level").getAsInt());
+            }
 
             return faction;
         }
@@ -402,6 +405,7 @@ public class DataManager {
         obj.addProperty("tag", faction.getRawTag());
         obj.addProperty("open", faction.isOpen());
         obj.addProperty("foundedDate", faction.getFoundedDate());
+        obj.addProperty("level", faction.getLevel());
 
         writeJson(file, obj);
     }

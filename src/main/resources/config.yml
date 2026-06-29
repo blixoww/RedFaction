@@ -10,6 +10,9 @@ pvp:
 factions:
   max_name_length: 16
   min_name_length: 3
+  # NOTE: max_members et max_warps sont désormais pilotés par le niveau de la
+  # faction (voir levels.yml). Ces valeurs ne servent plus que de repli si une
+  # clé de niveau est absente.
   # Maximum members per faction (-1 = illimité)
   max_members: 10
   # A member who hasn't logged in for this many days is auto-kicked
@@ -23,6 +26,8 @@ factions:
   max_warps: 3
 
 relations:
+  # NOTE: max_allies et max_truces sont désormais pilotés par le niveau de la
+  # faction (voir levels.yml). Ces valeurs ne servent que de repli.
   # Maximum number of each relation per faction (-1 = illimité)
   max_allies: 1
   max_truces: 1
@@ -81,6 +86,9 @@ zones:
   warzone_name: "WarZone"
 
 chest:
+  # NOTE: la taille du coffre dépend désormais du niveau de la faction
+  # (NONE/SMALL/BIG dans levels.yml -> chest.small_slots / chest.big_slots).
+  # Cette valeur n'est plus utilisée.
   default_slots: 27
 
 chat:
@@ -121,7 +129,7 @@ compat:
   placeholderapi: true
   # Colour player nametags (above head + tab) by faction relation.
   # Takes over per-player scoreboards — leave false if you use a tab/scoreboard plugin.
-  nametags: false
+  nametags: true
 
 interaction:
   block_entities: true

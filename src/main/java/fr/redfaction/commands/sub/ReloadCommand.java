@@ -26,6 +26,7 @@ public class ReloadCommand implements SubCommand {
 
         // Reload config
         plugin.reloadConfig();
+        plugin.getLevelManager().reload();
 
         // Reload data from disk
         plugin.getDataManager().loadAll();

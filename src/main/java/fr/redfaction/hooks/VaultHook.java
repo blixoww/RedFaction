@@ -28,4 +28,14 @@ public class VaultHook {
     public String format(double amount) {
         return economy != null ? economy.format(amount) : String.format("%.2f", amount);
     }
+
+    /** True if the player can afford {@code amount}. False if no economy is available. */
+    public boolean has(OfflinePlayer player, double amount) {
+        return economy != null && economy.has(player, amount);
+    }
+
+    /** Withdraws {@code amount} from the player. Returns true only on a successful transaction. */
+    public boolean withdraw(OfflinePlayer player, double amount) {
+        return economy != null && economy.withdrawPlayer(player, amount).transactionSuccess();
+    }
 }

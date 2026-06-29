@@ -83,6 +83,16 @@ public class WhoCommand implements SubCommand {
         // Access mode
         sender.sendMessage("§7Accès : " + (faction.isOpen() ? "§aOuvert" : "§eSur invitation"));
 
+        // Upgrade level (normal factions only)
+        if (faction.isNormal()) {
+            int level = faction.getLevel();
+            int maxLevel = plugin.getLevelManager().getMaxLevel();
+            String suffix = level < maxLevel
+                    ? " §8| §7Améliorable §8(§e/f upgrade§8)"
+                    : " §8| §6Niveau maximum";
+            sender.sendMessage("§7Niveau : §e" + level + suffix);
+        }
+
         // Foundation date (only for normal factions where it is known)
         if (faction.isNormal() && faction.getFoundedDate() > 0)
             sender.sendMessage("§7Fondée le : §f" + DATE.format(new Date(faction.getFoundedDate())));

@@ -19,7 +19,7 @@ import java.util.*;
 public class FCommand implements CommandExecutor, TabCompleter {
 
     private static final Set<String> FACTION_ARG = new HashSet<>(Arrays.asList(
-            "who", "show", "info", "ally", "truce", "enemy", "neutral", "join"));
+            "who", "show", "info", "ally", "truce", "enemy", "neutral", "join", "setlevel"));
     private static final Set<String> PLAYER_ARG = new HashSet<>(Arrays.asList(
             "invite", "kick", "promote", "demote", "transfer", "ban", "unban", "title", "admin"));
 
@@ -38,6 +38,11 @@ public class FCommand implements CommandExecutor, TabCompleter {
         register("create",    new CreateCommand(plugin));
         register("disband",   new DisbandCommand(plugin));
         register("rename",    new RenameCommand(plugin));
+        // Levels / upgrades
+        register("upgrade",   new UpgradeCommand(plugin));
+        register("levels",    new LevelsCommand(plugin));
+        register("level",     subCommands.get("levels"));
+        register("setlevel",  new SetLevelCommand(plugin));
         // Membership
         register("invite",    new InviteCommand(plugin));
         register("join",      new JoinCommand(plugin));
@@ -166,7 +171,8 @@ public class FCommand implements CommandExecutor, TabCompleter {
             }
             if (sub.equals("perm") || sub.equals("perms")) {
                 List<String> opts = new ArrayList<>(Arrays.asList("player", "faction", "list"));
-                for (PermTarget t : PermTarget.values()) if (t != PermTarget.LEADER) opts.add(t.name().toLowerCase());
+                for (PermTarget t : PermTarget.values())
+                    if (t != PermTarget.LEADER && t != PermTarget.ENEMY) opts.add(t.name().toLowerCase());
                 return filter(opts, args[1]);
             }
             if (sub.equals("power") || sub.equals("p")) {
@@ -179,6 +185,12 @@ public class FCommand implements CommandExecutor, TabCompleter {
             if (FACTION_ARG.contains(sub)) return filter(factionNames(), args[1]);
             if (PLAYER_ARG.contains(sub))  return filter(onlineNames(), args[1]);
             return Collections.emptyList();
+        }
+
+        if (sub.equals("setlevel") && args.length == 3 && sender.hasPermission("redfaction.admin")) {
+            List<String> levels = new ArrayList<>();
+            for (int i = 0; i <= plugin.getLevelManager().getMaxLevel(); i++) levels.add(String.valueOf(i));
+            return filter(levels, args[2]);
         }
 
         if ((sub.equals("power") || sub.equals("p")) && args.length == 3 && sender.hasPermission("redfaction.admin")) {

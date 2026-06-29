@@ -25,7 +25,7 @@ public final class PermGui {
     /** Order of the rows shown on the selection screen (LEADER excluded — always all). */
     public static final PermTarget[] TARGETS = {
             PermTarget.RECRUIT, PermTarget.MEMBER, PermTarget.OFFICER,
-            PermTarget.ALLY, PermTarget.TRUCE, PermTarget.NEUTRAL, PermTarget.ENEMY
+            PermTarget.ALLY, PermTarget.TRUCE, PermTarget.NEUTRAL
     };
     public static final FactionPermission[] PERMS = FactionPermission.values();
     public static final int BACK_SLOT = 26;

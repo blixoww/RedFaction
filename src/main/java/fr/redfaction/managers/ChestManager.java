@@ -62,18 +62,15 @@ public class ChestManager {
 
     private Inventory createInventory(Faction faction) {
         ChestHolder holder = new ChestHolder(faction.getId());
-        Inventory inv = Bukkit.createInventory(holder, size(), title(faction));
+        Inventory inv = Bukkit.createInventory(holder, size(faction), title(faction));
         holder.setInventory(inv);
         loadItems(inv, faction.getId());
         return inv;
     }
 
-    /** Inventory size, clamped to a valid value (multiple of 9, between 9 and 54). */
-    private int size() {
-        int s = plugin.getConfigUtil().getDefaultChestSlots();
-        if (s < 9) s = 9;
-        if (s > 54) s = 54;
-        return (s / 9) * 9;
+    /** Inventory size driven by the faction's upgrade level (small/big chest). */
+    private int size(Faction faction) {
+        return plugin.getLevelManager().getChestSlots(faction.getLevel());
     }
 
     private String title(Faction faction) {
@@ -120,6 +117,21 @@ public class ChestManager {
     /** Saves all loaded chests (called from AutoSaveTask and on disable). */
     public void saveAll() {
         for (UUID id : inventories.keySet()) save(id);
+    }
+
+    /**
+     * Persists then evicts a faction's cached inventory (keeping the data file),
+     * closing it for any current viewers. The next /f chest recreates it at the
+     * faction's current chest size — used after an upgrade changes the chest state.
+     */
+    public void reload(UUID factionId) {
+        save(factionId);
+        Inventory inv = inventories.remove(factionId);
+        if (inv != null) {
+            for (HumanEntity viewer : new ArrayList<>(inv.getViewers())) {
+                viewer.closeInventory();
+            }
+        }
     }
 
     /** Removes chest data on faction disband, closing it for any current viewers. */

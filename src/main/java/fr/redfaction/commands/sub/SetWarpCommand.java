@@ -36,7 +36,7 @@ public class SetWarpCommand implements SubCommand {
         }
 
         Faction faction = fp.getFaction();
-        int maxWarps = plugin.getConfigUtil().getMaxWarps();
+        int maxWarps = plugin.getLevelManager().getMaxWarps(faction.getLevel());
         if (!faction.hasWarp(name) && faction.getWarps().size() >= maxWarps) {
             MessageUtil.sendError(sender, "Limite de §e" + maxWarps + " §cwarps atteinte.");
             return;

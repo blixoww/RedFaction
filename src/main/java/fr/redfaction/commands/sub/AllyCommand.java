@@ -47,12 +47,13 @@ public class AllyCommand implements SubCommand {
             return;
         }
 
-        int maxAllies = plugin.getConfigUtil().getMaxAllies();
+        int maxAllies = plugin.getLevelManager().getMaxAllies(faction.getLevel());
         if (maxAllies >= 0 && faction.getAllies().size() >= maxAllies) {
             MessageUtil.sendError(sender, "Vous avez atteint la limite d'alliés (§e" + maxAllies + "§c).");
             return;
         }
-        if (maxAllies >= 0 && target.getAllies().size() >= maxAllies) {
+        int targetMaxAllies = plugin.getLevelManager().getMaxAllies(target.getLevel());
+        if (targetMaxAllies >= 0 && target.getAllies().size() >= targetMaxAllies) {
             MessageUtil.sendError(sender, "§e" + target.getName() + " §ca déjà atteint sa limite d'alliés.");
             return;
         }

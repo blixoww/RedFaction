@@ -61,11 +61,15 @@ public class PermCommand implements SubCommand {
         // Grid row target
         PermTarget target = PermTarget.fromString(first);
         if (target == null) {
-            MessageUtil.sendError(sender, "Cible inconnue: §e" + first + "§c. (recruit/member/officer/ally/truce/neutral/enemy)");
+            MessageUtil.sendError(sender, "Cible inconnue: §e" + first + "§c. (recruit/member/officer/ally/truce/neutral)");
             return;
         }
         if (target == PermTarget.LEADER) {
             MessageUtil.send(sender, "§6Le Chef §fpossède toujours toutes les permissions.");
+            return;
+        }
+        if (target == PermTarget.ENEMY) {
+            MessageUtil.send(sender, "§cLes ennemis n'ont aucune permission dans votre territoire.");
             return;
         }
 
@@ -118,7 +122,7 @@ public class PermCommand implements SubCommand {
 
     private static final PermTarget[] GRID_ROWS = {
             PermTarget.RECRUIT, PermTarget.MEMBER, PermTarget.OFFICER,
-            PermTarget.ALLY, PermTarget.TRUCE, PermTarget.NEUTRAL, PermTarget.ENEMY };
+            PermTarget.ALLY, PermTarget.TRUCE, PermTarget.NEUTRAL };
 
     private void showOverview(CommandSender sender, Faction faction) {
         String title = "§bPermissions §8— §f" + faction.getName();

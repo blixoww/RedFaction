@@ -35,6 +35,10 @@ public class ChestCommand implements SubCommand {
         }
 
         Faction faction = fp.getFaction();
+        if (!plugin.getLevelManager().isChestUnlocked(faction.getLevel())) {
+            MessageUtil.sendError(sender, "Coffre verrouillé. Améliorez votre faction (§e/f upgrade§c).");
+            return;
+        }
         player.openInventory(plugin.getChestManager().getInventory(faction));
     }
 

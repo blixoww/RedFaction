@@ -44,6 +44,7 @@ public final class RedFaction extends JavaPlugin {
     private NametagManager   nametagManager;
     private DataManager      dataManager;
     private ConfigUtil       configUtil;
+    private fr.redfaction.managers.LevelManager levelManager;
     private ChatListener     chatListener;
     private WorldGuardHook   worldGuardHook;
     private fr.redfaction.hooks.VaultHook vaultHook;
@@ -55,6 +56,7 @@ public final class RedFaction extends JavaPlugin {
         saveDefaultConfig();
         reloadConfig(); // load as UTF-8 (see override below)
         configUtil = new ConfigUtil(this);
+        levelManager = new fr.redfaction.managers.LevelManager(this);
 
         fPlayerManager   = new FPlayerManager();
         claimManager     = new ClaimManager();
@@ -183,6 +185,7 @@ public final class RedFaction extends JavaPlugin {
     public ChestManager    getChestManager()     { return chestManager; }
     public DataManager     getDataManager()      { return dataManager; }
     public ConfigUtil      getConfigUtil()       { return configUtil; }
+    public fr.redfaction.managers.LevelManager getLevelManager() { return levelManager; }
     public ChatListener    getChatListener()     { return chatListener; }
     public WorldGuardHook  getWorldGuardHook()   { return worldGuardHook; }
 
