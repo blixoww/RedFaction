@@ -26,6 +26,22 @@ public class LevelsCommand implements SubCommand {
     public void execute(CommandSender sender, String[] args) {
         LevelManager lm = plugin.getLevelManager();
 
+        // /f levels <n> — detail of a single level.
+        if (args.length >= 1) {
+            try {
+                int level = Integer.parseInt(args[0]);
+                if (level < 0 || level > lm.getMaxLevel()) {
+                    MessageUtil.sendError(sender, "Niveau invalide (0-" + lm.getMaxLevel() + ").");
+                    return;
+                }
+                showLevelDetail(sender, lm, level);
+                return;
+            } catch (NumberFormatException ignored) {
+                MessageUtil.sendError(sender, "Niveau invalide (0-" + lm.getMaxLevel() + ").");
+                return;
+            }
+        }
+
         int currentLevel = -1;
         if (sender instanceof Player) {
             FPlayer fp = plugin.getFPlayerManager().getFPlayer(((Player) sender).getUniqueId());
@@ -42,7 +58,10 @@ public class LevelsCommand implements SubCommand {
                     + (isCurrent ? "§a" : "§e") + "Niveau " + level
                     + " §8(" + costStr + "§8)"
                     + (isCurrent ? " §7§o(actuel)" : "");
-            MessageUtil.sendHover(sender, head, hover(lm, level));
+            // Hover shows the advantages; clicking re-prints them in chat for a lasting view.
+            MessageUtil.sendAction(sender, head,
+                    hover(lm, level) + "\n§8§o(cliquez pour afficher)",
+                    "/f levels " + level, false);
         }
 
         if (currentLevel >= 0) {
@@ -53,6 +72,16 @@ public class LevelsCommand implements SubCommand {
                 sender.sendMessage("§8» §6Votre faction est au niveau maximum.");
             }
         }
+        sender.sendMessage(MessageUtil.bannerBottom(title));
+    }
+
+    /** Prints one level's advantages in chat (the click target of the list). */
+    private void showLevelDetail(CommandSender sender, LevelManager lm, int level) {
+        String costStr = level == 0 ? "§aGratuit" : "§6" + formatCost(lm.getCost(level));
+        String title = "§b§lNiveau " + level;
+        sender.sendMessage(MessageUtil.banner(title));
+        sender.sendMessage("§8» §7Coût : " + costStr);
+        for (String line : advantageLines(lm, level)) sender.sendMessage("  " + line);
         sender.sendMessage(MessageUtil.bannerBottom(title));
     }
 
