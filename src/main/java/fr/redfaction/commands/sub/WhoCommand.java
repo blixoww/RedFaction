@@ -162,19 +162,19 @@ public class WhoCommand implements SubCommand {
         hover.append("§7Rôle : §r").append(role != null ? role.getDisplayName() : "§7?");
         if (fp != null) {
             if (fp.getCustomTitle() != null && !fp.getCustomTitle().isEmpty())
-                hover.append("\n§7Titre : §d").append(fp.getCustomTitle());
-            hover.append("\n§7Power : §e").append(String.format("%.1f", fp.getPower()))
+                hover.append("\n§7• Titre : §d").append(fp.getCustomTitle());
+            hover.append("\n§7• Power : §e").append(String.format("%.1f", fp.getPower()))
                  .append("§7/§e").append(String.format("%.0f", plugin.getConfigUtil().getMaxPower()));
-            hover.append("\n§7Statut : ").append(isOnline ? "§aen ligne" : "§chors-ligne");
+            hover.append("\n§7• Statut : ").append(isOnline ? "§aen ligne" : "§chors-ligne");
             // Last connection (visible for everyone, not just own faction)
             if (isOnline) {
-                hover.append("\n§7Dernière connexion : §aen ligne");
+                hover.append("\n§7• Dernière connexion : §aen ligne");
             } else if (fp.getLastSeen() > 0) {
-                hover.append("\n§7Dernière connexion : §f").append(DATE_TIME.format(new Date(fp.getLastSeen())));
+                hover.append("\n§7• Dernière connexion : §f").append(DATE_TIME.format(new Date(fp.getLastSeen())));
             }
             if (plugin.getVaultHook() != null && plugin.getVaultHook().hasEconomy()) {
                 double bal = plugin.getVaultHook().getBalance(Bukkit.getOfflinePlayer(uuid));
-                hover.append("\n§7Argent : §6").append(plugin.getVaultHook().format(bal));
+                hover.append("\n§7•Argent : §6").append(plugin.getVaultHook().format(bal));
             }
             if (isOwnFaction && fp.getFactionJoinDate() > 0) {
                 hover.append("\n§7Rejoint : §f").append(DATE.format(new Date(fp.getFactionJoinDate())));

@@ -10,6 +10,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -152,7 +153,7 @@ public class AutoDisbandTask extends BukkitRunnable {
         long bestJoin = Long.MAX_VALUE;
         Role bestRole = null;
 
-        for (java.util.Map.Entry<UUID, Role> entry : faction.getMembers().entrySet()) {
+        for (Map.Entry<UUID, Role> entry : faction.getMembers().entrySet()) {
             Role role = entry.getValue();
             if (role == Role.LEADER) continue;
 
