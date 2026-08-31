@@ -19,9 +19,10 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * /f map         — Wide chunk map. Each surrounding faction gets its own letter,
- *                  listed in a legend below (à la Factions / SaberFactions).
- * /f map auto    — Toggles auto-map (refreshes when changing chunk).
+ * /f map            — Wide chunk map. Each surrounding faction gets its own letter,
+ *                     listed in a legend below (à la Factions / SaberFactions).
+ * /f map on|off     — Turns the live map on or off explicitly.
+ * /f map auto       — Toggles it (kept: it is what the command has always accepted).
  */
 public class MapCommand implements SubCommand {
 
@@ -49,14 +50,25 @@ public class MapCommand implements SubCommand {
         if (!(sender instanceof Player)) { MessageUtil.sendError(sender, "Commande réservée aux joueurs."); return; }
         Player player = (Player) sender;
 
-        if (args.length > 0 && args[0].equalsIgnoreCase("auto")) {
-            if (automapPlayers.remove(player.getUniqueId())) {
-                MessageUtil.send(player, "§7Auto-map §cdésactivé§7.");
-            } else {
-                automapPlayers.add(player.getUniqueId());
-                MessageUtil.send(player, "§7Auto-map §aactivé§7. La carte se met à jour en marchant.");
+        if (args.length > 0) {
+            String mode = args[0].toLowerCase();
+            // "on"/"off" disent ce qu'on obtient ; "auto" bascule, comme avant.
+            // Un joueur qui tape "/f map on" deux fois doit rester en direct, pas
+            // se retrouver à l'avoir coupé sans le vouloir.
+            if (mode.equals("on") || mode.equals("off") || mode.equals("auto") || mode.equals("toggle")) {
+                boolean active = automapPlayers.contains(player.getUniqueId());
+                boolean enable = mode.equals("on") || ((mode.equals("auto") || mode.equals("toggle")) && !active);
+
+                if (enable) {
+                    automapPlayers.add(player.getUniqueId());
+                    MessageUtil.send(player, "§7Carte en direct §aactivée§7. Elle se met à jour à chaque chunk traversé.");
+                    printMap(player);
+                } else {
+                    automapPlayers.remove(player.getUniqueId());
+                    MessageUtil.send(player, "§7Carte en direct §cdésactivée§7.");
+                }
+                return;
             }
-            return;
         }
         printMap(player);
     }
@@ -155,6 +167,6 @@ public class MapCommand implements SubCommand {
     }
 
     @Override public String getPermission()   { return "redfaction.use"; }
-    @Override public String getUsage()        { return "/f map [auto]"; }
-    @Override public String getDescription()  { return "Carte des territoires (une lettre par faction)."; }
+    @Override public String getUsage()        { return "/f map [on|off]"; }
+    @Override public String getDescription()  { return "Carte des territoires (on = mise à jour en direct)."; }
 }

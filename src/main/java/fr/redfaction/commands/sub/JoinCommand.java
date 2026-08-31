@@ -11,7 +11,16 @@ import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
-/** /f join <faction> — Joins a faction the player has been invited to. */
+/**
+ * /f join <faction> — Joins a faction the player has been invited to.
+ *
+ * <p>Un porteur de {@code redfaction.admin} passe outre l'invitation, le ban de
+ * faction et la limite de membres : c'est le seul moyen d'entrer dans une
+ * faction pour l'inspecter (coffre, warps, claims) sans demander à son chef.
+ * L'appartenance unique, elle, reste vraie pour tout le monde — un admin déjà
+ * dans une faction doit la quitter d'abord, sans quoi les deux factions le
+ * compteraient comme membre.
+ */
 public class JoinCommand implements SubCommand {
 
     private final RedFaction plugin;
@@ -32,18 +41,22 @@ public class JoinCommand implements SubCommand {
             MessageUtil.sendError(sender, "Faction §e" + args[0] + " §cintrouvable.");
             return;
         }
-        if (faction.isBanned(player.getUniqueId())) {
-            MessageUtil.sendError(sender, "Vous êtes banni de §e" + faction.getName() + "§c.");
-            return;
-        }
-        if (!faction.isOpen() && !fp.hasPendingInvite(faction.getId())) {
-            MessageUtil.sendError(sender, "§e" + faction.getName() + " §cest sur invitation uniquement.");
-            return;
-        }
-        int maxMembers = plugin.getLevelManager().getMaxMembers(faction.getLevel());
-        if (maxMembers >= 0 && faction.getMembers().size() >= maxMembers) {
-            MessageUtil.sendError(sender, "§e" + faction.getName() + " §cest pleine (§e" + maxMembers + "§c membres max).");
-            return;
+        boolean admin = player.hasPermission("redfaction.admin");
+
+        if (!admin) {
+            if (faction.isBanned(player.getUniqueId())) {
+                MessageUtil.sendError(sender, "Vous êtes banni de §e" + faction.getName() + "§c.");
+                return;
+            }
+            if (!faction.isOpen() && !fp.hasPendingInvite(faction.getId())) {
+                MessageUtil.sendError(sender, "§e" + faction.getName() + " §cest sur invitation uniquement.");
+                return;
+            }
+            int maxMembers = plugin.getLevelManager().getMaxMembers(faction.getLevel());
+            if (maxMembers >= 0 && faction.getMembers().size() >= maxMembers) {
+                MessageUtil.sendError(sender, "§e" + faction.getName() + " §cest pleine (§e" + maxMembers + "§c membres max).");
+                return;
+            }
         }
 
         // Fire the join event before applying membership: another plugin may cancel it.
@@ -65,7 +78,8 @@ public class JoinCommand implements SubCommand {
         plugin.getDataManager().saveFaction(faction);
         plugin.getDataManager().savePlayers();
 
-        MessageUtil.sendSuccess(sender, "Vous avez rejoint §e" + faction.getName() + "§a !");
+        MessageUtil.sendSuccess(sender, "Vous avez rejoint §e" + faction.getName() + "§a !"
+                + (admin ? " §8(bypass admin)" : ""));
         broadcastToFaction(faction, "§e" + player.getName() + " §aa rejoint la faction !", player.getUniqueId());
     }
 
@@ -79,6 +93,6 @@ public class JoinCommand implements SubCommand {
 
     @Override public String getPermission()   { return "redfaction.use"; }
     @Override public String getUsage()        { return "/f join <faction>"; }
-    @Override public String getDescription()  { return "Rejoint une faction (invitation requise)."; }
+    @Override public String getDescription()  { return "Rejoint une faction (invitation requise, sauf admin)."; }
 }
 

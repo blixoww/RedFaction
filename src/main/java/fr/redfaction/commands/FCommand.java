@@ -185,7 +185,7 @@ public class FCommand implements CommandExecutor, TabCompleter {
                 for (int i = 0; i <= plugin.getLevelManager().getMaxLevel(); i++) levels.add(String.valueOf(i));
                 return filter(levels, args[1]);
             }
-            if (sub.equals("map"))        return filter(Collections.singletonList("auto"), args[1]);
+            if (sub.equals("map"))        return filter(Arrays.asList("on", "off", "auto"), args[1]);
             if (sub.equals("chat") || sub.equals("c")) return filter(Arrays.asList("p", "f", "a", "t"), args[1]);
             if (sub.equals("access"))     return filter(Arrays.asList("player", "faction", "list", "revoke"), args[1]);
             if (FACTION_ARG.contains(sub)) return filter(factionNames(), args[1]);
