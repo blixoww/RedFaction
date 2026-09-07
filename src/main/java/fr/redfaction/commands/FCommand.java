@@ -188,6 +188,11 @@ public class FCommand implements CommandExecutor, TabCompleter {
             if (sub.equals("map"))        return filter(Arrays.asList("on", "off", "auto"), args[1]);
             if (sub.equals("chat") || sub.equals("c")) return filter(Arrays.asList("p", "f", "a", "t"), args[1]);
             if (sub.equals("access"))     return filter(Arrays.asList("player", "faction", "list", "revoke"), args[1]);
+            if (sub.equals("who") || sub.equals("show") || sub.equals("info")) {
+                List<String> opts = new ArrayList<>(factionNames());
+                opts.addAll(onlineNames());
+                return filter(opts, args[1]);
+            }
             if (FACTION_ARG.contains(sub)) return filter(factionNames(), args[1]);
             if (PLAYER_ARG.contains(sub))  return filter(onlineNames(), args[1]);
             return Collections.emptyList();

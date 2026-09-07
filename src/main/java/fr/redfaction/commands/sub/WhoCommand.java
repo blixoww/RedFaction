@@ -16,7 +16,7 @@ import org.bukkit.entity.Player;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-/** /f who|show|info [faction] — Rich faction profile with hover-able members. */
+/** /f who|show|info [faction|joueur] — Rich faction profile with hover-able members. */
 public class WhoCommand implements SubCommand {
 
     private static final SimpleDateFormat DATE = new SimpleDateFormat("dd/MM/yyyy");
@@ -35,12 +35,24 @@ public class WhoCommand implements SubCommand {
             if (!(sender instanceof Player)) { MessageUtil.sendError(sender, "Précisez une faction."); return; }
             viewerFp = plugin.getFPlayerManager().getFPlayer(((Player) sender).getUniqueId());
             if (viewerFp == null || !viewerFp.hasFaction()) {
-                MessageUtil.sendError(sender, "Vous n'avez pas de faction. Essayez §e/f show <faction>§c."); return;
+                MessageUtil.sendError(sender, "Vous n'avez pas de faction. Essayez §e/f show <faction|joueur>§c."); return;
             }
             faction = viewerFp.getFaction();
         } else {
             faction = plugin.getFactionManager().getFactionByName(args[0]);
-            if (faction == null) { MessageUtil.sendError(sender, "Faction §e" + args[0] + " §cintrouvable."); return; }
+            if (faction == null) {
+                // Not a faction name — try to resolve it as a player and show their faction.
+                FPlayer target = resolvePlayer(args[0]);
+                if (target == null) {
+                    MessageUtil.sendError(sender, "Aucune faction ni joueur §e" + args[0] + " §cintrouvable.");
+                    return;
+                }
+                if (!target.hasFaction()) {
+                    MessageUtil.sendError(sender, "§e" + target.getName() + " §cn'a pas de faction.");
+                    return;
+                }
+                faction = target.getFaction();
+            }
             if (sender instanceof Player) {
                 viewerFp = plugin.getFPlayerManager().getFPlayer(((Player) sender).getUniqueId());
             }
@@ -201,12 +213,19 @@ public class WhoCommand implements SubCommand {
         return sb.append("§8]").toString();
     }
 
+    /** Resolves a player name to its FPlayer, preferring an online match. */
+    private FPlayer resolvePlayer(String name) {
+        Player online = Bukkit.getPlayer(name);
+        if (online != null) return plugin.getFPlayerManager().getFPlayer(online.getUniqueId());
+        return plugin.getFPlayerManager().getFPlayerByName(name);
+    }
+
     private String nameOf(UUID uuid) {
         FPlayer fp = plugin.getFPlayerManager().getFPlayer(uuid);
         return fp != null ? fp.getName() : uuid.toString();
     }
 
     @Override public String getPermission()   { return "redfaction.use"; }
-    @Override public String getUsage()        { return "/f show [faction]"; }
-    @Override public String getDescription()  { return "Affiche le profil détaillé d'une faction (survol des membres)."; }
+    @Override public String getUsage()        { return "/f show [faction|joueur]"; }
+    @Override public String getDescription()  { return "Affiche le profil détaillé d'une faction ou de celle d'un joueur."; }
 }
