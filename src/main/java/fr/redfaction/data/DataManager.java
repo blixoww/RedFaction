@@ -294,7 +294,22 @@ public class DataManager {
     }
 
     public void saveFaction(Faction faction) {
-        File file = new File(factionsDir, faction.getId().toString() + ".json");
+        writeJson(fileOf(faction), toJson(faction));
+    }
+
+    /** Le fichier d'une faction. Une seule definition, pour que rien ne diverge. */
+    private File fileOf(Faction faction) {
+        return new File(factionsDir, faction.getId().toString() + ".json");
+    }
+
+    /**
+     * Serialise une faction, sans rien ecrire.
+     *
+     * <p>Separe de l'ecriture parce que les deux n'ont pas les memes contraintes :
+     * la lecture des collections doit se faire sur le thread principal, l'ecriture
+     * disque ne le doit surtout pas. Voir {@link #saveAllAsync()}.
+     */
+    private JsonObject toJson(Faction faction) {
         JsonObject obj = new JsonObject();
         obj.addProperty("id", faction.getId().toString());
         obj.addProperty("name", faction.getName());
@@ -407,7 +422,7 @@ public class DataManager {
         obj.addProperty("foundedDate", faction.getFoundedDate());
         obj.addProperty("level", faction.getLevel());
 
-        writeJson(file, obj);
+        return obj;
     }
 
     public void deleteFactionFile(UUID factionId) {
@@ -415,6 +430,11 @@ public class DataManager {
     }
 
     public void savePlayers() {
+        writeJson(playersFile, playersJson());
+    }
+
+    /** Serialise les joueurs, sans rien ecrire (voir {@link #saveAllAsync()}). */
+    private JsonObject playersJson() {
         JsonObject root = new JsonObject();
         JsonArray arr = new JsonArray();
         for (FPlayer fp : plugin.getFPlayerManager().getAllFPlayers()) {
@@ -431,7 +451,68 @@ public class DataManager {
             arr.add(obj);
         }
         root.add("players", arr);
-        writeJson(playersFile, root);
+        return root;
+    }
+
+    // ================================================================
+    //  Sauvegarde periodique (hors thread principal)
+    // ================================================================
+
+    /**
+     * Sauvegarde tout, sans bloquer le serveur.
+     *
+     * <p><b>Le probleme qu'elle regle.</b> {@link #saveAll()} ecrit un fichier par
+     * faction, plus celui des joueurs, sur le thread qui fait tourner le monde.
+     * Avec quelques dizaines de factions, c'est autant d'ouvertures de fichier et
+     * de vidages disque pendant lesquels plus aucun tick ne passe : les joueurs
+     * voient un gel bref, et le client, qui a continue de bouger pendant ce
+     * temps, se fait replacer en arriere par le serveur. Le fameux « rollback »
+     * toutes les N minutes n'est presque jamais autre chose que ca.
+     *
+     * <p><b>Le partage.</b> La serialisation reste ici, sur le thread principal :
+     * elle traverse les collections des factions, que rien ne protege contre une
+     * lecture concurrente. Seule l'ecriture disque part en arriere-plan, avec des
+     * chaines de caracteres deja figees — elles n'appartiennent plus a personne,
+     * donc rien ne peut les modifier pendant qu'on les ecrit.
+     *
+     * <p>A n'utiliser que pour la sauvegarde <b>periodique</b>. A l'extinction,
+     * l'ordonnanceur n'accepte plus de tache asynchrone : c'est {@link #saveAll()}
+     * qu'il faut appeler, et tant pis pour le gel — le serveur ferme.
+     */
+    public void saveAllAsync() {
+        final List<PendingWrite> pending = new ArrayList<PendingWrite>();
+        for (Faction f : plugin.getFactionManager().getAllFactions()) {
+            pending.add(new PendingWrite(fileOf(f), gson.toJson(toJson(f))));
+        }
+        pending.add(new PendingWrite(playersFile, gson.toJson(playersJson())));
+
+        org.bukkit.Bukkit.getScheduler().runTaskAsynchronously(plugin, new Runnable() {
+            @Override public void run() {
+                for (PendingWrite write : pending) {
+                    write.flush(plugin);
+                }
+            }
+        });
+    }
+
+    /** Un fichier et son contenu deja serialise, en attente d'ecriture. */
+    private static final class PendingWrite {
+        private final File file;
+        private final String content;
+
+        private PendingWrite(File file, String content) {
+            this.file = file;
+            this.content = content;
+        }
+
+        private void flush(RedFaction plugin) {
+            try (Writer writer = new OutputStreamWriter(
+                    new FileOutputStream(file), StandardCharsets.UTF_8)) {
+                writer.write(content);
+            } catch (IOException e) {
+                plugin.getLogger().log(Level.WARNING, "Failed to write JSON to " + file.getName(), e);
+            }
+        }
     }
 
     // ================================================================

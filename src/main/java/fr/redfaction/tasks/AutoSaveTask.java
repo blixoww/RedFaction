@@ -15,11 +15,17 @@ public class AutoSaveTask extends BukkitRunnable {
         this.plugin = plugin;
     }
 
+    /**
+     * <p>Les deux appels sont asynchrones : la serialisation se fait ici, sur le
+     * thread principal, mais les fichiers partent en arriere-plan. Ecrire des
+     * dizaines de fichiers au milieu d'un tick suspendait le monde le temps du
+     * vidage disque — c'est ce gel, repete a chaque intervalle, que les joueurs
+     * ressentaient comme un retour en arriere.
+     */
     @Override
     public void run() {
-        plugin.getDataManager().saveAll();
-        plugin.getChestManager().saveAll();
-        plugin.getLogger().info("[AutoSave] Données sauvegardées.");
+        plugin.getDataManager().saveAllAsync();
+        plugin.getChestManager().saveAllAsync();
     }
 }
 

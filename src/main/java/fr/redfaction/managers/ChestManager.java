@@ -13,6 +13,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -114,9 +115,50 @@ public class ChestManager {
         }
     }
 
-    /** Saves all loaded chests (called from AutoSaveTask and on disable). */
+    /** Saves all loaded chests (called on disable). */
     public void saveAll() {
         for (UUID id : inventories.keySet()) save(id);
+    }
+
+    /**
+     * Meme chose, sans bloquer le serveur : la lecture des inventaires reste sur
+     * le thread principal, l'ecriture disque part en arriere-plan.
+     *
+     * <p>Un coffre de faction fait 54 emplacements et chaque pile serialisee tient
+     * plusieurs lignes de YAML ; a trente factions actives, la sauvegarde
+     * periodique ecrivait trente fichiers d'affilee pendant que le monde
+     * attendait. Voir {@link fr.redfaction.data.DataManager#saveAllAsync()}.
+     */
+    public void saveAllAsync() {
+        final Map<File, String> payloads = new HashMap<File, String>();
+        for (Map.Entry<UUID, Inventory> entry : inventories.entrySet()) {
+            YamlConfiguration cfg = new YamlConfiguration();
+            ItemStack[] arr = entry.getValue().getContents();
+            for (int i = 0; i < arr.length; i++) {
+                if (arr[i] != null && arr[i].getType() != Material.AIR) {
+                    cfg.set("items." + i, arr[i]);
+                }
+            }
+            payloads.put(new File(chestsDir, entry.getKey().toString() + ".yml"), cfg.saveToString());
+        }
+        if (payloads.isEmpty()) {
+            return;
+        }
+
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, new Runnable() {
+            @Override public void run() {
+                for (Map.Entry<File, String> entry : payloads.entrySet()) {
+                    try (java.io.Writer writer = new java.io.OutputStreamWriter(
+                            Files.newOutputStream(entry.getKey().toPath()),
+                            java.nio.charset.StandardCharsets.UTF_8)) {
+                        writer.write(entry.getValue());
+                    } catch (IOException e) {
+                        plugin.getLogger().log(Level.WARNING,
+                                "Failed to save chest file " + entry.getKey().getName(), e);
+                    }
+                }
+            }
+        });
     }
 
     /**

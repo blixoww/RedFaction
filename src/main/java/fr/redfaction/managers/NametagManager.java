@@ -46,10 +46,11 @@ public class NametagManager {
             else                  color = Relation.color(vf, tf);
 
             Team team = teamFor(board, color);
-            for (Team t : board.getTeams()) {
-                if (t != team && t.hasEntry(target.getName())) t.removeEntry(target.getName());
+            Team current = board.getEntryTeam(target.getName());
+            if (current != team) {
+                if (current != null) current.removeEntry(target.getName());
+                team.addEntry(target.getName());
             }
-            if (!team.hasEntry(target.getName())) team.addEntry(target.getName());
         }
     }
 
